@@ -59,6 +59,16 @@ function refreshProps() {
   box.append(h('div', { class: 'ptitle small' }, 'Contour / liseré'),
     h('div', { class: 'btnrow' }, h('input', { id: 'halo_d', type: 'number', value: 4, step: 0.5, style: 'width:70px' }), h('span', {}, 'mm'), h('select', { id: 'halo_l', class: 'layerSel', html: layerOpts(S.layers[0] && S.layers[0].id) }),
       h('button', { onclick: () => haloSel(parseFloat($('#halo_d').value) || 4, $('#halo_l').value) }, 'Créer')));
+  const lo = (id) => h('select', { id, class: 'layerSel', html: layerOpts(S.layers[0] && S.layers[0].id) });
+  box.append(h('div', { class: 'ptitle small' }, 'Effets design (aplats, sans dégradé)'),
+    h('div', { class: 'hint' }, 'Ombre portée : copie décalée dans une couleur du dessous.'),
+    h('div', { class: 'btnrow' }, h('input', { id: 'sh_dx', type: 'number', value: 10, style: 'width:56px', title: 'décalage X mm' }), h('input', { id: 'sh_dy', type: 'number', value: 10, style: 'width:56px', title: 'décalage Y mm' }), lo('sh_l'), h('button', { onclick: () => shadowSel(parseFloat($('#sh_dx').value) || 0, parseFloat($('#sh_dy').value) || 0, $('#sh_l').value) }, 'Ombre')),
+    h('div', { class: 'hint' }, 'Liseré intérieur : trait fin parallèle au bord (écart · épaisseur mm).'),
+    h('div', { class: 'btnrow' }, h('input', { id: 'in_g', type: 'number', value: 8, style: 'width:56px' }), h('input', { id: 'in_w', type: 'number', value: 6, style: 'width:56px' }), lo('in_l'), h('button', { onclick: () => inlineSel(parseFloat($('#in_g').value) || 6, parseFloat($('#in_w').value) || 5, $('#in_l').value) }, 'Liseré')),
+    h('div', { class: 'hint' }, 'Série : n copies décalées (traînée de vitesse).'),
+    h('div', { class: 'btnrow' }, h('input', { id: 'rp_n', type: 'number', value: 3, style: 'width:46px' }), h('input', { id: 'rp_x', type: 'number', value: -60, style: 'width:56px', title: 'pas X mm' }), h('input', { id: 'rp_y', type: 'number', value: 0, style: 'width:56px', title: 'pas Y mm' }), h('input', { id: 'rp_s', type: 'number', value: 0.85, step: 0.05, style: 'width:56px', title: 'échelle par copie' }), h('button', { onclick: () => repeatSel(parseInt($('#rp_n').value) || 3, parseFloat($('#rp_x').value) || 0, parseFloat($('#rp_y').value) || 0, parseFloat($('#rp_s').value) || 1) }, 'Répéter')),
+    h('div', { class: 'hint' }, 'Épurer : retire les détails trop fins pour le vinyle monocouche (pelage).'),
+    h('div', { class: 'btnrow' }, h('input', { id: 'cl_w', type: 'number', value: 4, step: 0.5, style: 'width:56px' }), h('span', {}, 'mm mini'), h('button', { onclick: () => cleanSel(parseFloat($('#cl_w').value) || 4) }, 'Épurer')));
   if (!multi && o.src && o.src.kind === 'text') {
     const s = o.src;
     box.append(h('div', { class: 'ptitle small' }, 'Texte'),

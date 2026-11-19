@@ -14,7 +14,7 @@ Un seul fichier HTML, **sans installation, sans compte, hors-ligne** : ouvrez `d
 |---|---|
 | **Planche 5 vues à l'échelle 1:1 (mm)** | côté gauche, côté droit, dessus, face avant, face arrière – comme vos modèles « 106 » / « Valdenaire ». 5 gabarits intégrés : citadine rallye, WRC/Rally2, pick-up/4x4, utilitaire, camion 7,5 t |
 | **Vue 3D temps réel** | la déco est plaquée sur une carrosserie 3D (flancs, toit/capot/coffre, faces). Rotation à la souris, vues prédéfinies, capture JPG |
-| **Déco auto « comme un designer »** | 6 styles complets : *Griffures Rallye* (rouge/noir/blanc), *Boue & Splash*, *Pixel Fade*, *Facettes géométriques*, *Racing Stripes + Swoosh*, *Camion / Pro*. Ajoute ronds de porte, n° de course, équipage, sponsors de bas de caisse, bandeau pare-brise. Bouton 🎲 pour une autre variante |
+| **Déco auto « comme un designer »** | 10 styles complets en **aplats superposés, sans dégradé** (pensé plotter monocouche) : *Griffures Rallye*, *Boue & Splash*, *Facettes*, *Racing Stripes + Swoosh*, *Rafale WRC*, *Éclats Lime*, *Topo Gravel*, *Alvéoles Hybrid*, *Rétro Groupe B*, *Camion / Pro*. Ajoute ronds de porte, n° de course, équipage, sponsors de bas de caisse, bandeau pare-brise. Bouton 🎲 pour une autre variante |
 | **Calques = couleurs de vinyle** | superposition de couleurs (ordre bas → haut), visibilité, verrouillage, palette de vinyles usuels |
 | **Motifs vectoriels** | griffures, éclaboussures, traces de pneus, flammes, damier dégradé, demi-teintes, facettes low-poly, bandes inclinées, chevrons, lignes de vitesse, swoosh, vagues + formes de base |
 | **Texte → contours** | 7 polices sport/techno intégrées (OFL), espacement, inclinaison, contour/liseré automatique |
@@ -23,6 +23,9 @@ Un seul fichier HTML, **sans installation, sans compte, hors-ligne** : ouvrez `d
 | **Ajustement carrosserie** | les décos sont coupées aux contours du véhicule et aux passages de roues (option sans vitres) |
 | **Export découpe** | par couleur : **PDF**, **.ai** (PDF vectoriel compatible Illustrator), **SVG** ; ZIP complet |
 | **Dossier client** | PDF A3 : planche + 4 rendus 3D |
+
+| **Effets design** | ombre portée décalée, liseré intérieur, série (traînées de vitesse), contour, **épurer** (supprime les détails trop fins pour le vinyle monocouche) |
+| **3D à sections courbes** | carrosserie lofée : piliers inclinés, épaules arrondies, passages de roues creusés, roues à branches, rétroviseurs |
 
 ## Fichiers de découpe
 
@@ -60,7 +63,7 @@ Bibliothèques incluses : [js-clipper](https://sourceforge.net/projects/jsclippe
 ## Limites connues
 
 * Les gabarits intégrés sont des silhouettes **génériques** (proportions approximatives) : pour un modèle précis, importez votre plan en fond et calibrez l'échelle.
-* La 3D est une carrosserie lissée (pas un modèle constructeur) : le pare-brise/lunette utilisent la texture du dessus.
+* La 3D est une carrosserie lofée à partir des silhouettes (pas un modèle constructeur) : le pare-brise/lunette utilisent la texture du dessus.
 * Non testé sur une vraie découpeuse : vérifiez toujours un petit essai de coupe (échelle, miroir, trait de coupe).
 
 Licence MIT (code). Voir les licences des bibliothèques et polices ci-dessus.

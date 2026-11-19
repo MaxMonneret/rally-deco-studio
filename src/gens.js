@@ -169,8 +169,79 @@ const GENS = {
       return tiers;
     }
   },
+  rafale: {
+    label: 'Rafale (bandes obliques)', tiers: 2, desc: 'Bandes obliques franches de largeurs variées + liseré – look WRC',
+    params: { n: ['Bandes', 2, 14, 6], angle: ['Inclinaison °', 12, 75, 38], gap: ['Espace %', 8, 80, 32] },
+    fn(w, h, rnd, p) {
+      const n = Math.round(p.n ?? 6), a = (p.angle ?? 38) * Math.PI / 180, dx = h / Math.tan(a), u = (w + dx) / n, gp = (p.gap ?? 32) / 100, t0 = [], t1 = [];
+      for (let i = 0; i < n; i++) {
+        const bw = u * (1 - gp) * (0.55 + rnd() * 0.9), x0 = -dx + i * u + (u - bw) / 2;
+        t0.push([[x0, h], [x0 + bw, h], [x0 + bw + dx, 0], [x0 + dx, 0]]);
+        if (i % 2 === 0 && bw > 60) { const iw = Math.max(22, bw * 0.28), xi = x0 + (bw - iw) / 2; t1.push([[xi, h], [xi + iw, h], [xi + iw + dx, 0], [xi + dx, 0]]); }
+      }
+      const R = [G.rect(0, 0, w, h)]; return [G.inter(t0, R), G.inter(t1, R)];
+    }
+  },
+  eclats: {
+    label: 'Éclats (shards superposés)', tiers: 3, desc: 'Grandes lames angulaires imbriquées en 3 couleurs – aplats nets',
+    params: { n: ['Éclats', 3, 20, 9], angle: ['Direction °', -60, 60, -18], size: ['Taille %', 20, 100, 55] },
+    fn(w, h, rnd, p) {
+      const n = Math.round(p.n ?? 9), base = (p.angle ?? -18) * Math.PI / 180, t0 = [], t1 = [], t2 = [];
+      for (let i = 0; i < n; i++) {
+        const cx = w * (0.05 + rnd() * 0.9), cy = h * (0.05 + rnd() * 0.9), len = w * (p.size ?? 55) / 100 * (0.35 + rnd() * 0.65), th = Math.min(h * (0.10 + rnd() * 0.25), len * 0.35);
+        const an = base + (rnd() - 0.5) * 0.35, d = [Math.cos(an), Math.sin(an)], nn = [-d[1], d[0]], sh = (rnd() - 0.5) * len * 0.5;
+        const P = (a, b) => [cx + d[0] * a + nn[0] * b, cy + d[1] * a + nn[1] * b];
+        const kite = (s) => [P(len / 2 * s, 0), P(sh * s, th * s * (0.6 + rnd() * 0.3)), P(-len / 2 * s, 0), P(sh * s, -th * s * (0.6 + rnd() * 0.3))];
+        t0.push(kite(1)); const off = len * 0.1;
+        const k1 = kite(0.62).map(q => [q[0] + d[0] * off, q[1] + d[1] * off]); t1.push(k1);
+        if (len > 180) t2.push(kite(0.22).map(q => [q[0] + d[0] * off * 2, q[1] + d[1] * off * 2]));
+      }
+      const R = [G.rect(0, 0, w, h)]; return [G.inter(t0, R), G.inter(t1, R), G.inter(t2, R)];
+    }
+  },
+  topo: {
+    label: 'Topo (courbes de niveau)', tiers: 2, desc: 'Lignes de niveau concentriques, traits épais faciles à peler',
+    params: { lines: ['Nb de lignes', 3, 14, 7], width: ['Épaisseur mm', 6, 30, 12], blobs: ['Zones', 1, 4, 2] },
+    fn(w, h, rnd, p) {
+      const lw = p.width ?? 12, pitch = lw * 2.3, K = Math.round(p.lines ?? 7), nb = Math.round(p.blobs ?? 2), tiers = [[], []];
+      for (let b = 0; b < nb; b++) {
+        const R0 = Math.min(w, h) * 0.18 + pitch * K * 0.5, cx = w * (0.15 + rnd() * 0.7), cy = h * (0.2 + rnd() * 0.6), st = 1.2 + rnd() * 0.9, f = [rnd() * 6, rnd() * 6, rnd() * 6], pts = [];
+        for (let i = 0; i < 72; i++) { const a = i / 72 * Math.PI * 2, r = R0 * (1 + 0.22 * Math.sin(2 * a + f[0]) + 0.14 * Math.sin(3 * a + f[1]) + 0.08 * Math.sin(5 * a + f[2])); pts.push([cx + Math.cos(a) * r * st, cy + Math.sin(a) * r]); }
+        const blob = [G.chaikin(pts, 1)];
+        for (let k = 0; k < K; k++) { const o = G.diff(G.offset(blob, -k * pitch), G.offset(blob, -k * pitch - lw)); if (!o.length) break; tiers[b % 2].push(...o); }
+      }
+      const R = [G.rect(0, 0, w, h)]; return tiers.map(t => G.inter(t, R));
+    }
+  },
+  hex: {
+    label: 'Alvéoles (nid d\'abeille)', tiers: 2, desc: 'Hexagones en liseré + quelques pleins, bord de zone ondulé (sans dégradé)',
+    params: { cell: ['Taille mm', 40, 220, 95], fill: ['Pleins %', 0, 60, 22] },
+    fn(w, h, rnd, p) {
+      const s = p.cell ?? 95, dxs = 1.5 * s, dys = Math.sqrt(3) * s, ph = rnd() * 6, t0 = [], t1 = [], lw = Math.max(9, s * 0.13);
+      for (let i = -1; i * dxs < w + s; i++) for (let j = -1; j * dys < h + s; j++) {
+        const cx = i * dxs, cy = j * dys + (i & 1 ? dys / 2 : 0);
+        if (cx > w * (0.62 + 0.3 * Math.sin(cy / h * Math.PI * 1.3 + ph))) continue;
+        const R = s * 0.94, hexa = G.poly(cx, cy, R, 6, 0);
+        if (rnd() * 100 < (p.fill ?? 22)) t1.push(hexa); else t0.push(...G.diff([hexa], [G.poly(cx, cy, R - lw * 1.4, 6, 0)]));
+      }
+      const Rc = [G.rect(0, 0, w, h)]; return [G.inter(t0, Rc), G.inter(t1, Rc)];
+    }
+  },
+  lignes: {
+    label: 'Lignes parallèles à décrochement', tiers: 3, desc: 'Faisceau de bandes avec un « décrochement » (rétro Groupe B / Martini)',
+    params: { n: ['Bandes', 2, 8, 4], thick: ['Épaisseur % haut.', 3, 20, 9], kink: ['Position décroch. %', 15, 85, 45], drop: ['Décrochement %', -45, 45, 22] },
+    fn(w, h, rnd, p) {
+      const n = Math.round(p.n ?? 4), th = h * (p.thick ?? 9) / 100, gap = th * 0.45, drop = h * (p.drop ?? 22) / 100, kx = w * (p.kink ?? 45) / 100, tot = n * th + (n - 1) * gap, y0 = h / 2 - tot / 2 - drop / 2, tiers = [[], [], []];
+      const sl = Math.abs(drop) * 1.1 + 1;
+      for (let i = 0; i < n; i++) {
+        const y = y0 + i * (th + gap) + th / 2, pts = [[-th, y], [kx - sl / 2, y], [kx + sl / 2, y + drop], [w + th, y + drop]];
+        tiers[i % 3].push(ribbon(pts, () => th));
+      }
+      const R = [G.rect(0, 0, w, h)]; return tiers.map(t => G.inter(t, R));
+    }
+  },
   damier: {
-    label: 'Damier dégradé (pixel fade)', tiers: 1, desc: 'Carrés qui disparaissent progressivement',
+    label: 'Damier dégradé (déconseillé : fondu)', tiers: 1, desc: 'Carrés qui disparaissent progressivement',
     params: { cell: ['Taille case mm', 15, 120, 45], fade: ['Dégradé', 0, 100, 70] },
     fn(w, h, rnd, p) {
       const c = p.cell ?? 45, cols = Math.max(2, Math.round(w / c)), rows = Math.max(1, Math.round(h / c)), cw = w / cols, ch = h / rows, out = [];

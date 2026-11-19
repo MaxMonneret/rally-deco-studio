@@ -71,17 +71,42 @@ function updateTextures() {
   if (T3.mats) { for (const m of Object.values(T3.mats)) m.color.set(0xffffff); T3.body && (T3.paintMat.color.set(S.paint)); }
 }
 
-/* ----- géométrie ----- */
+/* ----- géométrie (carrosserie lofée à sections courbes) ----- */
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const NS1 = 22, NS2 = 8, NS3 = 6, MH = NS1 + NS2 + NS3;
 function stations(v) {
-  const xs = new Set(); const N = 160; for (let i = 0; i <= N; i++) xs.add(v.L * i / N);
-  [...v.plan, ...v.top].forEach(p => { for (const dx of [-0.5, 0.5]) { const x = p[0] + dx; if (x > 0 && x < v.L) xs.add(x); } });
-  return [...xs].sort((a, b) => a - b);
+  const xs = []; const N = 140; for (let i = 0; i <= N; i++) xs.push(v.L * i / N);
+  [...v.plan, ...v.top].forEach(p => { for (const dx of [-0.5, 0.5]) { const x = p[0] + dx; if (x > 0 && x < v.L) xs.push(x); } });
+  for (let i = 1; i <= 10; i++) { const e = 110 * (i / 10) * (i / 10); xs.push(e, v.L - e); }
+  for (const w of v.wheels) { const ar = w.r * 1.2 + 30; for (let x = w.x - ar; x <= w.x + ar; x += 18) if (x > 0 && x < v.L) xs.push(x); }
+  xs.sort((a, b) => a - b); const o = [xs[0]]; for (const x of xs) if (x - o[o.length - 1] > 0.6) o.push(x); return o;
 }
-function strip(rows, cols, pos, uv) {
-  const P = [], U = [], I = [];
-  for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) { const p = pos(i, j); P.push(p[0], p[1], p[2]); const u = uv(i, j, p); U.push(u[0], u[1]); }
-  for (let i = 0; i < rows - 1; i++) for (let j = 0; j < cols - 1; j++) { const a = i * cols + j, b = a + 1, c = a + cols, d = c + 1; I.push(a, c, b, b, c, d); }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); g.setIndex(I); g.computeVertexNormals(); return g;
+// demi-section (z>=0) : bas de caisse -> flanc -> épaule/pilier -> toit/capot (centre)
+function halfProfile(v, x) {
+  let hw = Math.max(80, halfWidth(v, x)), yb = bottomY(v, x), yt = topY(v, x);
+  const e = 110, d = Math.min(x, v.L - x);
+  if (d < e) { const t = d / e, s = Math.sqrt(1 - (1 - t) * (1 - t)); hw *= 0.8 + 0.2 * s; const sh = 45 * (1 - s); yb += sh; yt -= sh; }
+  yt = Math.max(yt, yb + 60);
+  const tuck = v.tuck ?? 0.06, tum = v.tumble ?? 0.22, beltY = v.belt || v.H * 0.6;
+  const bul = u => 1 - tuck * (1 - u) * (1 - u);
+  const k = sstep(beltY + 10, beltY + 130, yt), A = [], B = [];
+  { // capot / coffre : épaule arrondie + léger bombé
+    const rs = Math.min(hw * 0.3, (yt - yb) * 0.4, 140), crown = Math.min(30, hw * 0.05), yTop = z => yt - crown * (z / hw) * (z / hw), yA = yt - rs;
+    for (let j = 0; j < NS1; j++) { const u = j / (NS1 - 1); A.push([hw * bul(u), yb + u * (yA - yb)]); }
+    const zE = hw - rs, yE = yTop(zE);
+    for (let j = 1; j <= NS2; j++) { const th = j / NS2 * Math.PI / 2; A.push([zE + rs * Math.cos(th), yA + (yE - yA) * Math.sin(th)]); }
+    for (let j = 1; j <= NS3; j++) { const z = zE * (1 - j / NS3); A.push([z, yTop(z)]); }
+  }
+  { // habitacle : piliers inclinés (tumblehome) + arrondi de pavillon
+    const yB = Math.max(yb + 40, Math.min(beltY, yt - 120)), hr = hw * (1 - tum), rr = Math.min(70, (yt - yB) * 0.3, hr * 0.5), yTop = z => yt - 12 * (z / hr) * (z / hr);
+    for (let j = 0; j < NS1; j++) { const u = j / (NS1 - 1); B.push([hw * bul(u), yb + u * (yB - yb)]); }
+    const P0 = [hw, yB], P1 = [hr, yTop(hr)], dl = Math.hypot(P0[0] - P1[0], P0[1] - P1[1]) || 1;
+    const Q0 = [P1[0] + (P0[0] - P1[0]) * rr / dl, P1[1] + (P0[1] - P1[1]) * rr / dl], zq = Math.max(0, hr - rr), Q1 = [zq, yTop(zq)];
+    const Na = NS2 / 2; for (let j = 1; j <= Na; j++) { const t = j / Na; B.push([P0[0] + (Q0[0] - P0[0]) * t, P0[1] + (Q0[1] - P0[1]) * t]); }
+    const Nb = NS2 - Na; for (let j = 1; j <= Nb; j++) { const t = j / Nb, a = (1 - t) * (1 - t), b = 2 * t * (1 - t), c = t * t; B.push([a * Q0[0] + b * P1[0] + c * Q1[0], a * Q0[1] + b * P1[1] + c * Q1[1]]); }
+    for (let j = 1; j <= NS3; j++) { const z = zq * (1 - j / NS3); B.push([z, yTop(z)]); }
+  }
+  return A.map((a, j) => [a[0] + (B[j][0] - a[0]) * k, a[1] + (B[j][1] - a[1]) * k]);
 }
 function build3D() {
   if (!T3.ready) return;
@@ -89,57 +114,77 @@ function build3D() {
   if (T3.group) { T3.scene.remove(T3.group); T3.group.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
   const g = T3.group = new THREE.Group(); T3.scene.add(g);
   T3.cvs = {}; for (const k in T3.tex) { T3.tex[k].dispose(); } T3.tex = {};
-  const L = v.L, W = v.W, Hh = v.H;
-  const xs = stations(v), n = xs.length, X3 = x => L / 2 - x;
-  const sec = x => { const hw = halfWidth(v, x), yb = bottomY(v, x), yt = topY(v, x); const r = Math.max(10, Math.min(hw * 0.16, (yt - yb) * 0.35)); return { hw, yb, yt, r }; };
-  const S_ = xs.map(sec);
+  const L = v.L, W = v.W, Hh = v.H, X3 = x => L / 2 - x;
+  const xs = stations(v), n = xs.length, K = 2 * MH - 1;
   updateTexturesPrep();
   const mk = (map, extra = {}) => new THREE.MeshPhysicalMaterial(Object.assign({ map, roughness: 0.32, metalness: 0.1, clearcoat: 0.85, clearcoatRoughness: 0.12, side: THREE.DoubleSide, envMapIntensity: 0.9 }, extra));
   T3.mats = {}; for (const vk of VIEWS) T3.mats[vk] = mk(T3.tex[vk]);
   T3.paintMat = new THREE.MeshPhysicalMaterial({ color: S.paint, roughness: 0.35, clearcoat: 0.8, side: THREE.DoubleSide });
   T3.body = true;
-  // flancs
-  const wall = (side) => strip(n, 2, (i, j) => { const s = S_[i]; return [X3(xs[i]), j ? s.yt - s.r : s.yb, side * s.hw]; },
-    (i, j, p) => { const x = xs[i]; return [side < 0 ? x / L : 1 - x / L, p[1] / Hh]; });
-  const lw = new THREE.Mesh(wall(-1), T3.mats.left), rw = new THREE.Mesh(wall(1), T3.mats.right);
-  // dessus (épaules + toit)
-  const AR = 6, ROOF = 2, cols = AR * 2 + ROOF;
-  const topPos = (i, j) => {
-    const s = S_[i], x = xs[i]; let z, y;
-    if (j < AR) { const a = Math.PI - (j / (AR - 1)) * Math.PI / 2; z = -s.hw + s.r + Math.cos(a) * s.r; y = s.yt - s.r + Math.sin(a) * s.r; }
-    else if (j < AR + ROOF) { const t = (j - AR + 1) / (ROOF + 1); z = -s.hw + s.r + t * (2 * (s.hw - s.r)); y = s.yt; }
-    else { const jj = j - AR - ROOF; const a = Math.PI / 2 - (jj / (AR - 1)) * Math.PI / 2; z = s.hw - s.r + Math.cos(a) * s.r; y = s.yt - s.r + Math.sin(a) * s.r; }
-    return [X3(x), y, z];
+  const archIn = (x, y) => { let a = 0; for (const w of v.wheels) { const d = Math.hypot(x - w.x, y - w.r) - w.r * 1.14; a = Math.max(a, 1 - sstep(-30, 30, d)); } return a; };
+  // grille de sommets : n stations x K points (gauche bas -> toit -> droite bas)
+  const P = new Float32Array(n * K * 3), SX = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = xs[i], hp = halfProfile(v, x), D = Math.min(150, hp[NS1 - 1][0] * 0.2); SX[i] = x;
+    for (let j = 0; j < MH; j++) {
+      let z = hp[j][0], y = hp[j][1]; if (j < NS1) z -= D * archIn(x, y);
+      P.set([X3(x), y, -z], (i * K + j) * 3); if (j < MH - 1) P.set([X3(x), y, z], (i * K + 2 * MH - 2 - j) * 3);
+    }
+  }
+  const N = new Float32Array(P.length), g3 = (a, b) => (a * K + b) * 3;
+  for (let i = 0; i < n; i++) for (let c = 0; c < K; c++) {
+    const i0 = Math.max(i - 1, 0), i1 = Math.min(i + 1, n - 1), c0 = Math.max(c - 1, 0), c1 = Math.min(c + 1, K - 1);
+    const t1 = [0, 1, 2].map(q => P[g3(i1, c) + q] - P[g3(i0, c) + q]), t2 = [0, 1, 2].map(q => P[g3(i, c1) + q] - P[g3(i, c0) + q]);
+    const nx = t1[1] * t2[2] - t1[2] * t2[1], ny = t1[2] * t2[0] - t1[0] * t2[2], nz = t1[0] * t2[1] - t1[1] * t2[0], l = Math.hypot(nx, ny, nz) || 1;
+    N.set([nx / l, ny / l, nz / l], g3(i, c));
+  }
+  const fixWind = (I, Pp, Nn) => {
+    const a = I[0], b = I[1], c = I[2]; const ux = Pp[b * 3] - Pp[a * 3], uy = Pp[b * 3 + 1] - Pp[a * 3 + 1], uz = Pp[b * 3 + 2] - Pp[a * 3 + 2], wx = Pp[c * 3] - Pp[a * 3], wy = Pp[c * 3 + 1] - Pp[a * 3 + 1], wz = Pp[c * 3 + 2] - Pp[a * 3 + 2];
+    const fx = uy * wz - uz * wy, fy = uz * wx - ux * wz, fz = ux * wy - uy * wx;
+    if (fx * Nn[a * 3] + fy * Nn[a * 3 + 1] + fz * Nn[a * 3 + 2] < 0) for (let k = 0; k < I.length; k += 3) { const t = I[k + 1]; I[k + 1] = I[k + 2]; I[k + 2] = t; }
   };
-  const tg = strip(n, cols, topPos, (i, j, p) => [(p[2] + W / 2) / W, 1 - xs[i] / L]);
-  const tm = new THREE.Mesh(tg, T3.mats.top);
-  // dessous
-  const ug = strip(n, 2, (i, j) => [X3(xs[i]), S_[i].yb, (j ? 1 : -1) * S_[i].hw], () => [0, 0]);
-  const um = new THREE.Mesh(ug, new THREE.MeshStandardMaterial({ color: 0x15171a, side: THREE.DoubleSide }));
-  // faces avant / arrière
-  const cap = (i, front) => {
-    const s = S_[i]; const pts = [];
-    pts.push([-s.hw, s.yb]); pts.push([-s.hw, s.yt - s.r]);
-    for (let a = 1; a < AR; a++) { const t = Math.PI - (a / (AR - 1)) * Math.PI / 2; pts.push([-s.hw + s.r + Math.cos(t) * s.r, s.yt - s.r + Math.sin(t) * s.r]); }
-    for (let a = 0; a < AR; a++) { const t = Math.PI / 2 - (a / (AR - 1)) * Math.PI / 2; pts.push([s.hw - s.r + Math.cos(t) * s.r, s.yt - s.r + Math.sin(t) * s.r]); }
-    pts.push([s.hw, s.yb]);
-    const cz = 0, cy = (s.yb + s.yt) / 2; const P = [], U = [], I = [];
-    const add = (z, y) => { P.push(X3(xs[i]), y, z); U.push(front ? (W / 2 - z) / W : (z + W / 2) / W, y / Hh); };
-    add(cz, cy); pts.forEach(p => add(p[0], p[1]));
-    for (let k = 1; k < pts.length; k++) I.push(0, k, k + 1);
-    const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); gg.setIndex(I); gg.computeVertexNormals(); return gg;
+  const geo = (Pp, Nn, U, I) => { fixWind(I, Pp, Nn); const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(Pp, 3)); gg.setAttribute('normal', new THREE.Float32BufferAttribute(Nn, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); gg.setIndex(I); return gg; };
+  const part = (c0, c1, uvf, mat) => {
+    const cols = c1 - c0 + 1, Pp = [], Nn = [], U = [], I = [];
+    for (let i = 0; i < n; i++) for (let c = c0; c <= c1; c++) { const q = g3(i, c); Pp.push(P[q], P[q + 1], P[q + 2]); Nn.push(N[q], N[q + 1], N[q + 2]); U.push(...uvf(SX[i], P[q + 1], P[q + 2])); }
+    for (let i = 0; i < n - 1; i++) for (let c = 0; c < cols - 1; c++) { const a = i * cols + c, b = a + 1, cc = a + cols, d = cc + 1; I.push(a, cc, b, b, cc, d); }
+    const m = new THREE.Mesh(geo(Pp, Nn, U, I), mat); m.castShadow = m.receiveShadow = true; g.add(m);
   };
-  const fm = new THREE.Mesh(cap(0, true), T3.mats.front), rm = new THREE.Mesh(cap(n - 1, false), T3.mats.rear);
-  for (const m of [lw, rw, tm, um, fm, rm]) { m.castShadow = true; m.receiveShadow = true; g.add(m); }
-  // roues
-  const tireW = Math.min(0.15 * W, 320);
-  const tyre = new THREE.MeshStandardMaterial({ color: 0x0e0f11, roughness: 0.9 }), rim = new THREE.MeshStandardMaterial({ color: 0xb8bec6, roughness: 0.3, metalness: 0.9 });
+  const Jq = NS1 + NS2 - 1;
+  part(0, Jq, (x, y) => [x / L, y / Hh], T3.mats.left);
+  part(Jq, K - 1 - Jq, (x, y, z) => [(z + W / 2) / W, 1 - x / L], T3.mats.top);
+  part(K - 1 - Jq, K - 1, (x, y) => [1 - x / L, y / Hh], T3.mats.right);
+  { // dessous
+    const Pp = [], Nn = [], U = [], I = [];
+    for (let i = 0; i < n; i++) for (const c of [0, K - 1]) { const q = g3(i, c); Pp.push(P[q], P[q + 1], P[q + 2]); Nn.push(0, -1, 0); U.push(0, 0); }
+    for (let i = 0; i < n - 1; i++) { const a = i * 2; I.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+    g.add(new THREE.Mesh(geo(Pp, Nn, U, I), new THREE.MeshStandardMaterial({ color: 0x15171a, side: THREE.DoubleSide })));
+  }
+  const cap = (i, front) => { // faces avant / arrière
+    const Pp = [], Nn = [], U = [], I = []; let cy = 0; for (let c = 0; c < K; c++) cy += P[g3(i, c) + 1]; cy /= K;
+    const add = (z, y) => { Pp.push(X3(xs[i]), y, z); Nn.push(front ? 1 : -1, 0, 0); U.push(front ? (W / 2 - z) / W : (z + W / 2) / W, y / Hh); };
+    add(0, cy); for (let c = 0; c < K; c++) add(P[g3(i, c) + 2], P[g3(i, c) + 1]);
+    for (let k = 1; k < K; k++) I.push(0, k, k + 1);
+    return geo(Pp, Nn, U, I);
+  };
+  for (const [i, f, mt] of [[0, true, T3.mats.front], [n - 1, false, T3.mats.rear]]) { const m = new THREE.Mesh(cap(i, f), mt); m.castShadow = true; g.add(m); }
+  // roues dans les passages
+  const tireW = Math.min(0.15 * W, 320), liner = new THREE.MeshStandardMaterial({ color: 0x050506, roughness: 1, side: THREE.DoubleSide });
+  const tyre = new THREE.MeshStandardMaterial({ color: 0x0e0f11, roughness: 0.9 }), disc = new THREE.MeshStandardMaterial({ color: 0x24272b, roughness: 0.5, metalness: 0.6 }), alu = new THREE.MeshStandardMaterial({ color: 0xc4c9d0, roughness: 0.25, metalness: 0.9 });
   for (const w of v.wheels) for (const sd of [-1, 1]) {
-    const hw = halfWidth(v, w.x), grp = new THREE.Group();
-    const t = new THREE.Mesh(new THREE.CylinderGeometry(w.r, w.r, tireW, 40, 1), tyre); t.rotation.x = Math.PI / 2; grp.add(t);
-    const rm2 = new THREE.Mesh(new THREE.CylinderGeometry(w.r * 0.62, w.r * 0.62, tireW + 4, 32), rim); rm2.rotation.x = Math.PI / 2; grp.add(rm2);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(w.r * 0.2, w.r * 0.2, tireW + 10, 16), new THREE.MeshStandardMaterial({ color: 0x555a60, metalness: .8, roughness: .4 })); hub.rotation.x = Math.PI / 2; grp.add(hub);
-    grp.position.set(X3(w.x), w.r, sd * (hw - tireW * 0.35)); grp.traverse(o => { if (o.isMesh) { o.castShadow = true; } }); g.add(grp);
+    const hp = halfProfile(v, w.x), hw = hp[NS1 - 1][0], D = Math.min(150, hw * 0.2), grp = new THREE.Group();
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(w.r, w.r, tireW, 48, 1), tyre); t.rotation.x = Math.PI / 2; grp.add(t);
+    const dk = new THREE.Mesh(new THREE.CylinderGeometry(w.r * 0.66, w.r * 0.66, tireW + 4, 40), disc); dk.rotation.x = Math.PI / 2; grp.add(dk);
+    const lip = new THREE.Mesh(new THREE.TorusGeometry(w.r * 0.66, w.r * 0.03, 8, 40), alu); lip.position.z = tireW / 2 + 2; grp.add(lip);
+    for (let a = 0; a < 5; a++) { const sp = new THREE.Mesh(new THREE.BoxGeometry(w.r * 0.5, w.r * 0.11, 12), alu); const an = a / 5 * Math.PI * 2; sp.position.set(Math.cos(an) * w.r * 0.28, Math.sin(an) * w.r * 0.28, tireW / 2 + 4); sp.rotation.z = an; grp.add(sp); }
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(w.r * 0.13, w.r * 0.13, tireW + 14, 16), alu); hub.rotation.x = Math.PI / 2; grp.add(hub);
+    if (sd < 0) grp.rotation.y = Math.PI; // enjoliveur côté extérieur
+    grp.position.set(X3(w.x), w.r, sd * (hw - tireW / 2 - 5)); grp.traverse(o => { if (o.isMesh) o.castShadow = true; }); g.add(grp);
+    const ln = new THREE.Mesh(new THREE.CircleGeometry(w.r * 1.08, 40), liner); ln.position.set(X3(w.x), w.r, sd * (hw - D + 3)); g.add(ln);
+  }
+  if (v.ws) { // rétroviseurs
+    const mm = new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.4 }), bw = halfProfile(v, v.ws[0] + 90)[NS1 - 1][0];
+    for (const sd of [-1, 1]) { const m = new THREE.Mesh(new THREE.BoxGeometry(130, 85, 150), mm); m.position.set(X3(v.ws[0] + 90), (v.belt || Hh * 0.6) + 55, sd * (bw + 50)); m.castShadow = true; g.add(m); }
   }
   T3.dirty = true; T3.fitDist = Math.max(L, Hh * 2) * 1.55;
 }

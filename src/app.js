@@ -358,6 +358,33 @@ function haloSel(d, layerId) {
   }
   S.sel = new Set(out.map(o => o.id)); commit();
 }
+function mkWorld(name, rings, layer, before) { // objet en coordonnées monde (x=y=0)
+  const c = makeObj({ name, rings, layer, x: 0, y: 0, clip: 'none' }); c.rings = rings; c.lb = G.bbox(rings);
+  const idx = before ? S.objs.indexOf(before) : -1; if (idx >= 0) S.objs.splice(idx, 0, c); else S.objs.push(c); return c;
+}
+function shadowSel(dx, dy, layerId) { // ombre portée décalée (aplat) : lire « effet 3D » sans dégradé
+  const out = [];
+  for (const id of S.sel) { const o = objById(id); if (!o) continue; const w = G.union(cRings(o)); const sh = G.xf(w, [1, 0, 0, 1, dx, dy]); out.push(mkWorld('Ombre ' + o.name, sh, layerId || o.layer, o)); }
+  S.sel = new Set(out.map(o => o.id)); commit();
+}
+function inlineSel(gap, width, layerId) { // liseré intérieur : fin trait parallèle au bord, à l'intérieur de la forme
+  const out = [];
+  for (const id of S.sel) { const o = objById(id); if (!o) continue; const w = G.union(cRings(o)); const r = G.diff(G.offset(w, -gap), G.offset(w, -gap - width)); if (r.length) out.push(mkWorld('Liseré ' + o.name, r, layerId || o.layer)); }
+  S.sel = new Set(out.map(o => o.id)); commit();
+}
+function repeatSel(n, dx, dy, sc) { // série (traînées, vitesse) : copies décalées avec échelle progressive
+  const out = [];
+  for (const id of S.sel) { const o = objById(id); if (!o) continue; const b = G.bbox(cRings(o)); let k = 1;
+    for (let i = 1; i <= n; i++) { k *= sc; const w = G.xf(G.union(cRings(o)), [k, 0, 0, k, b.cx * (1 - k) + dx * i, b.cy * (1 - k) + dy * i]); out.push(mkWorld(o.name + ' ×' + (i + 1), w, o.layer, o)); } }
+  S.sel = new Set(out.map(o => o.id)); commit();
+}
+function cleanSel(minW) { // épure : supprime ce qui est plus fin que minW mm et les îlots minuscules (pelage / reports faciles)
+  let n = 0;
+  for (const id of S.sel) { const o = objById(id); if (!o) continue; const w = G.union(cRings(o));
+    const op = G.offset(G.offset(w, -minW / 2), minW / 2).filter(r => Math.abs(G.area([r])) > minW * minW * 6);
+    if (op.length) { o.rings = op; o.x = 0; o.y = 0; o.rot = 0; o.sx = o.sy = 1; o.fx = false; o.clip = 'none'; o._wk = null; o.lb = G.bbox(op); n++; } }
+  commit(); toast('Épuré : détails < ' + minW + ' mm supprimés (' + n + ' objet' + (n > 1 ? 's' : '') + ')');
+}
 function placeCenter() { // centre de l'écran en mm
   const c = cv(); return toMM(c.clientWidth / 2, c.clientHeight / 2);
 }

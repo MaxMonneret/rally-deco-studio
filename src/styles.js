@@ -30,31 +30,17 @@ const STYLES = {
       c.end('rear', W * .96, H * .3, 'splash', { spikes: 12, drops: 28 }, [0, 1], 28);
     }
   },
-  pixel: {
-    name: 'Pixel Fade', blurb: 'Damier qui se dissout vers l\'avant – moderne, très tendance',
-    pal: [['Noir', '#111111'], ['Jaune', '#ffd400'], ['Blanc', '#ffffff']], light: 2, dark: 0,
-    fn(c) {
-      const { L, H, W } = c;
-      c.side(L * .12, H * .22, L * .88, H * .66, 'damier', { cell: Math.max(40, H / 14), fade: 90 }, [0], { seed: 31, flip: true });
-      c.side(L * .3, H * .62, L * .7, H * .3, 'damier', { cell: Math.max(40, H / 14), fade: 95 }, [1], { seed: 32, flip: true });
-      c.topPart(0, 'damier', { cell: 70, fade: 85 }, [0], 'hood', 33, { flip: true });
-      c.topPart(1, 'damier', { cell: 70, fade: 85 }, [0], 'roof', 34, { flip: true });
-      c.topPart(2, 'damier', { cell: 70, fade: 70 }, [0], 'trunk', 35);
-      c.end('front', W * .96, H * .24, 'damier', { cell: 40, fade: 80 }, [0], 36);
-      c.end('rear', W * .96, H * .24, 'damier', { cell: 40, fade: 70 }, [0], 37);
-    }
-  },
   facettes: {
     name: 'Facettes Géométriques', blurb: 'Éclats low-poly anthracite / cyan – look « showcar »',
     pal: [['Anthracite', '#3b3f45'], ['Cyan', '#00b7c3'], ['Blanc', '#ffffff']], light: 2, dark: 0,
     fn(c) {
       const { L, H, W } = c;
-      c.side(L * .06, H * .18, L * .94, H * .76, 'facettes', { cell: H * .22, fade: 75 }, [0, 1, 2], { seed: 41, flip: true });
-      c.topPart(0, 'facettes', { cell: 170, fade: 60 }, [0, 1, 2], 'hood', 42, { flip: true });
-      c.topPart(1, 'facettes', { cell: 170, fade: 50 }, [0, 1, 2], 'roof', 43);
-      c.topPart(2, 'facettes', { cell: 170, fade: 50 }, [0, 1, 2], 'trunk', 44);
-      c.end('front', W * .98, H * .3, 'facettes', { cell: 120, fade: 70 }, [0, 1, 2], 45);
-      c.end('rear', W * .98, H * .3, 'facettes', { cell: 120, fade: 70 }, [0, 1, 2], 46);
+      c.side(L * .06, H * .18, L * .94, H * .76, 'facettes', { cell: H * .22, fade: 0 }, [0, 1, 2], { seed: 41, flip: true });
+      c.topPart(0, 'facettes', { cell: 170, fade: 0 }, [0, 1, 2], 'hood', 42, { flip: true });
+      c.topPart(1, 'facettes', { cell: 170, fade: 0 }, [0, 1, 2], 'roof', 43);
+      c.topPart(2, 'facettes', { cell: 170, fade: 0 }, [0, 1, 2], 'trunk', 44);
+      c.end('front', W * .98, H * .3, 'facettes', { cell: 120, fade: 0 }, [0, 1, 2], 45);
+      c.end('rear', W * .98, H * .3, 'facettes', { cell: 120, fade: 0 }, [0, 1, 2], 46);
     }
   },
   racing: {
@@ -67,6 +53,71 @@ const STYLES = {
       c.stripes(W, L, [1, 2, 0]);
       c.end('front', W * .9, H * .12, 'vitesse', { n: 5 }, [1, 2], 53);
       c.end('rear', W * .9, H * .12, 'vitesse', { n: 5 }, [1, 2], 54);
+    }
+  },
+  rafale: {
+    name: 'Rafale WRC', blurb: 'Bandes obliques franches rouge/noir qui plongent vers l\'avant – look Toyota / Hyundai, aplats nets',
+    pal: [['Rouge', '#d71920'], ['Noir', '#111111'], ['Blanc', '#ffffff']], light: 2, dark: 1,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(L * .08, H * .12, L * .84, H * .8, 'rafale', { n: 8, angle: 36, gap: 28 }, [0, 1], { seed: 71, flip: true });
+      c.side(0, H * .45, L * .22, H * .45, 'rafale', { n: 3, angle: 48, gap: 40 }, [1, 0], { seed: 72 });
+      c.topPart(0, 'rafale', { n: 5, angle: 40, gap: 34 }, [0, 1], 'hood', 73);
+      c.topPart(1, 'rafale', { n: 4, angle: 40, gap: 40 }, [1, 0], 'roof', 74);
+      c.topPart(2, 'rafale', { n: 5, angle: 40, gap: 34 }, [0, 1], 'trunk', 75, { flip: true });
+      c.end('front', W * .94, H * .24, 'rafale', { n: 6, angle: 40, gap: 30 }, [0, 1], 76);
+      c.end('rear', W * .94, H * .24, 'rafale', { n: 6, angle: 40, gap: 30 }, [0, 1], 77);
+    }
+  },
+  eclats: {
+    name: 'Éclats Lime', blurb: 'Grandes lames angulaires imbriquées vert lime / noir – showcar agressif, 100 % aplats',
+    pal: [['Vert lime', '#a5d600'], ['Noir', '#111111'], ['Blanc', '#ffffff']], light: 2, dark: 1,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(L * .04, H * .15, L * .92, H * .78, 'eclats', { n: 10, angle: -16, size: 60 }, [0, 1, 2], { seed: 81, flip: true });
+      c.topPart(0, 'eclats', { n: 6, angle: -10, size: 70 }, [0, 1, 2], 'hood', 82);
+      c.topPart(1, 'eclats', { n: 5, angle: 12, size: 70 }, [1, 0, 2], 'roof', 83);
+      c.topPart(2, 'eclats', { n: 6, angle: -10, size: 70 }, [0, 1, 2], 'trunk', 84);
+      c.end('front', W * .96, H * .26, 'eclats', { n: 6, angle: 8, size: 60 }, [0, 1, 2], 85);
+      c.end('rear', W * .96, H * .26, 'eclats', { n: 6, angle: -8, size: 60 }, [0, 1, 2], 86);
+    }
+  },
+  topo: {
+    name: 'Topo Gravel', blurb: 'Courbes de niveau vert forêt / noir – esprit rallye nature, traits épais',
+    pal: [['Vert forêt', '#1f6b3a'], ['Noir', '#111111'], ['Blanc', '#ffffff']], light: 2, dark: 1,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(L * .06, H * .14, L * .88, H * .8, 'topo', { lines: 8, width: 14, blobs: 3 }, [0, 1], { seed: 91 });
+      c.topPart(0, 'topo', { lines: 6, width: 14, blobs: 2 }, [0, 1], 'hood', 92);
+      c.topPart(1, 'topo', { lines: 5, width: 14, blobs: 2 }, [1, 0], 'roof', 93);
+      c.topPart(2, 'topo', { lines: 6, width: 14, blobs: 2 }, [0, 1], 'trunk', 94);
+      c.end('front', W * .96, H * .28, 'topo', { lines: 5, width: 12, blobs: 2 }, [0, 1], 95);
+      c.end('rear', W * .96, H * .28, 'topo', { lines: 5, width: 12, blobs: 2 }, [0, 1], 96);
+    }
+  },
+  hex: {
+    name: 'Alvéoles Hybrid', blurb: 'Nid d\'abeille cyan / bleu nuit sur l\'arrière du flanc – techno, sans dégradé',
+    pal: [['Cyan', '#00b7c3'], ['Bleu nuit', '#10264f'], ['Blanc', '#ffffff']], light: 2, dark: 1,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(L * .02, H * .16, L * .96, H * .78, 'hex', { cell: Math.round(H * .075), fill: 22 }, [0, 1], { seed: 101, flip: true });
+      c.side(L * .5, H * .5, L * .5, H * .4, 'rafale', { n: 4, angle: 30, gap: 40 }, [1, 0], { seed: 102 });
+      c.topPart(0, 'hex', { cell: 110, fill: 20 }, [0, 1], 'hood', 103, { flip: true });
+      c.topPart(1, 'hex', { cell: 110, fill: 20 }, [1, 0], 'roof', 104);
+      c.topPart(2, 'hex', { cell: 110, fill: 20 }, [0, 1], 'trunk', 105);
+      c.end('front', W * .96, H * .26, 'hex', { cell: 85, fill: 20 }, [0, 1], 106);
+      c.end('rear', W * .96, H * .26, 'hex', { cell: 85, fill: 20 }, [0, 1], 107);
+    }
+  },
+  retro: {
+    name: 'Rétro Groupe B', blurb: 'Faisceau de bandes bleu / rouge avec décrochement sur le flanc, capot et toit – icône des années 80',
+    pal: [['Bleu roi', '#1b4fa3'], ['Rouge', '#d71920'], ['Blanc', '#ffffff']], light: 2, dark: 0,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(-L * .02, H * .3, L * 1.04, H * .55, 'lignes', { n: 4, thick: 8, kink: 46, drop: 22 }, [0, 1, 0], { seed: 111 });
+      c.stripes(W, L, [0, 1, 0]);
+      c.end('front', W * .96, H * .22, 'lignes', { n: 4, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 112);
+      c.end('rear', W * .96, H * .22, 'lignes', { n: 4, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 113);
     }
   },
   camion: {
