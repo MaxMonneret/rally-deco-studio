@@ -321,7 +321,7 @@ function startUI() {
   };
 
   $('#styleGo').onclick = () => {
-    const opt = { num: $('#aNum').value, crew: $('#aCrew').value, sponsor: $('#aSponsor').value, company: $('#aCompany').value, sub: $('#aSub').value, seed: parseInt($('#aSeed').value) || 1, clear: $('#aClear').checked };
+    const opt = { num: $('#aNum').value, crew: $('#aCrew').value, sponsor: $('#aSponsor').value, company: $('#aCompany').value, sub: $('#aSub').value, seed: parseInt($('#aSeed').value) || 1, clear: $('#aClear').checked, asym: $('#aAsym').checked };
     applyStyle(curStyle, opt); commit(); buildLeft(); fitView(); toast('Déco « ' + STYLES[curStyle].name + ' » générée — modifiez, déplacez, changez les couleurs !');
   };
   $('#aDice').onclick = () => { $('#aSeed').value = Math.floor(Math.random() * 900) + 1; $('#styleGo').click(); };
@@ -333,6 +333,7 @@ function startUI() {
   bindExportOpts();
   // 3D
   $$('#camBtns button').forEach(b => b.onclick = () => camPreset(b.dataset.c));
+  ['wheelCol', 'optLamps', 'optWing'].forEach(id => $('#' + id).onchange = () => { T3.opts = { wheel: $('#wheelCol').value, lamps: $('#optLamps').checked, wing: $('#optWing').checked }; build3D(); });
   $('#autoRot').onchange = e => { T3.controls.autoRotate = e.target.checked; T3.controls.autoRotateSpeed = 1.2; };
   $('#shot3d').onclick = () => { const u = shot3D(2000, 1125); const a = document.createElement('a'); a.href = u; a.download = slug(S.name) + '_3D.jpg'; a.click(); camPreset('34av'); };
   initCanvas();

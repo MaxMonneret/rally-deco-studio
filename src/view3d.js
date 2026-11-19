@@ -1,6 +1,6 @@
 /* ===== view3d.js : aperçu 3D (three.js) ===== */
 'use strict';
-const T3 = { ready: false, dirty: true, tex: {}, cvs: {}, group: null, timer: 0 };
+const T3 = { opts: { wheel: 'alu', lamps: false, wing: false }, ready: false, dirty: true, tex: {}, cvs: {}, group: null, timer: 0 };
 
 function init3D() {
   if (T3.ready) return; T3.ready = true;
@@ -171,7 +171,7 @@ function build3D() {
   for (const [i, f, mt] of [[0, true, T3.mats.front], [n - 1, false, T3.mats.rear]]) { const m = new THREE.Mesh(cap(i, f), mt); m.castShadow = true; g.add(m); }
   // roues dans les passages
   const tireW = Math.min(0.15 * W, 320), liner = new THREE.MeshStandardMaterial({ color: 0x050506, roughness: 1, side: THREE.DoubleSide });
-  const tyre = new THREE.MeshStandardMaterial({ color: 0x0e0f11, roughness: 0.9 }), disc = new THREE.MeshStandardMaterial({ color: 0x24272b, roughness: 0.5, metalness: 0.6 }), alu = new THREE.MeshStandardMaterial({ color: 0xc4c9d0, roughness: 0.25, metalness: 0.9 });
+  const tyre = new THREE.MeshStandardMaterial({ color: 0x0e0f11, roughness: 0.9 }), disc = new THREE.MeshStandardMaterial({ color: 0x24272b, roughness: 0.5, metalness: 0.6 }), alu = new THREE.MeshStandardMaterial({ color: { alu: 0xc4c9d0, gold: 0xd4a62a, black: 0x1a1b1e, white: 0xf2f2f2 }[T3.opts.wheel] || 0xc4c9d0, roughness: 0.25, metalness: 0.9 });
   for (const w of v.wheels) for (const sd of [-1, 1]) {
     const hp = halfProfile(v, w.x), hw = hp[NS1 - 1][0], D = Math.min(150, hw * 0.2), grp = new THREE.Group();
     const t = new THREE.Mesh(new THREE.CylinderGeometry(w.r, w.r, tireW, 48, 1), tyre); t.rotation.x = Math.PI / 2; grp.add(t);
@@ -186,6 +186,17 @@ function build3D() {
   if (v.ws) { // rétroviseurs
     const mm = new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.4 }), bw = halfProfile(v, v.ws[0] + 90)[NS1 - 1][0];
     for (const sd of [-1, 1]) { const m = new THREE.Mesh(new THREE.BoxGeometry(130, 85, 150), mm); m.position.set(X3(v.ws[0] + 90), (v.belt || Hh * 0.6) + 55, sd * (bw + 50)); m.castShadow = true; g.add(m); }
+  }
+  if (T3.opts.lamps) { // barre de phares additionnels (rallye)
+    const lm = new THREE.MeshStandardMaterial({ color: 0xfff6d0, emissive: 0xffe9a0, emissiveIntensity: 1.2, roughness: 0.3 }), bm = new THREE.MeshStandardMaterial({ color: 0x111214, roughness: 0.5 });
+    const ly = Math.max(v.frontBot + 170, bottomY(v, 40) + 170), nl = 4, hw0 = halfWidth(v, 60);
+    for (let i = 0; i < nl; i++) { const z = (i - (nl - 1) / 2) * Math.min(hw0 * 0.46, 150), cyl = new THREE.Mesh(new THREE.CylinderGeometry(70, 70, 40, 28), bm); cyl.rotation.z = Math.PI / 2; cyl.position.set(X3(-8), ly, z); g.add(cyl);
+      const lens = new THREE.Mesh(new THREE.CylinderGeometry(58, 58, 8, 28), lm); lens.rotation.z = Math.PI / 2; lens.position.set(X3(-30), ly, z); g.add(lens); }
+  }
+  if (T3.opts.wing) { // aileron arrière
+    const wm = new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.4 }), xw = L - 150, yw = topY(v, xw) + 120, ww = Math.min(W * 0.78, halfWidth(v, xw) * 2 * 0.95);
+    const pl = new THREE.Mesh(new THREE.BoxGeometry(230, 14, ww), wm); pl.position.set(X3(xw), yw, 0); pl.rotation.z = 0.12; pl.castShadow = true; g.add(pl);
+    for (const sd of [-1, 1]) { const st = new THREE.Mesh(new THREE.BoxGeometry(40, 120, 12), wm); st.position.set(X3(xw), yw - 60, sd * ww * 0.35); g.add(st); }
   }
   T3.dirty = true; T3.fitDist = Math.max(L, Hh * 2) * 1.55;
 }

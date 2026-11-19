@@ -277,6 +277,26 @@ const GENS = {
       const R = [G.rect(0, 0, w, h)]; return t.map(a => G.inter(a, R));
     }
   },
+  echiquier: {
+    label: 'Damier uniforme (toit / bandeau)', tiers: 1, desc: 'Damier régulier net, sans fondu – toit de AX, bandeaux',
+    params: { cell: ['Case mm', 25, 120, 55], rows: ['Rangées', 1, 8, 3] },
+    fn(w, h, rnd, p) {
+      const c = p.cell ?? 55, rows = Math.max(1, Math.round(p.rows ?? 3)), cols = Math.max(2, Math.round(w / c)), cw = w / cols, ch = Math.min(c, h / rows), y0 = (h - ch * rows) / 2, out = [];
+      for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) if ((i + j) % 2 === 0) out.push(G.rect(i * cw, y0 + j * ch, cw, ch));
+      return [out];
+    }
+  },
+  arc: {
+    label: 'Courbe de séparation (aplat + liserés)', tiers: 3, desc: 'Grand aplat limité par une courbe en S + 2 liserés parallèles – esprit C2 / Citroën',
+    params: { amp: ['Amplitude %', 5, 60, 30], gap: ['Espace liserés mm', 14, 70, 30], thick: ['Épaisseur liseré mm', 12, 60, 26] },
+    fn(w, h, rnd, p) {
+      const amp = h * (p.amp ?? 30) / 100, gp = p.gap ?? 30, th = p.thick ?? 26, pts = [];
+      const fy = x => h * 0.5 - amp * (smooth01(Math.min(1, Math.max(0, x / w * 1.25 - 0.1))) - 0.5) * 2;
+      for (let i = 0; i <= 40; i++) { const x = w * i / 40; pts.push([x, fy(x)]); }
+      const R = [G.rect(0, 0, w, h)], shift = d => pts.map(q => [q[0], q[1] + d]);
+      return [G.inter([[...pts, [w, h], [0, h]]], R), G.inter([ribbon(shift(-gp - th / 2), () => th)], R), G.inter([ribbon(shift(-gp * 2 - th * 1.5), () => th * 0.6)], R)];
+    }
+  },
   damier: {
     label: 'Damier dégradé (déconseillé : fondu)', tiers: 1, desc: 'Carrés qui disparaissent progressivement',
     params: { cell: ['Taille case mm', 15, 120, 45], fade: ['Dégradé', 0, 100, 70] },

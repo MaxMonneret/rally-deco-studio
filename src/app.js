@@ -3,7 +3,7 @@
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 let _uid = 1; const nid = () => 'o' + (_uid++) + Math.random().toString(36).slice(2, 5);
-const VINYL = [['Blanc', '#ffffff'], ['Noir', '#111111'], ['Rouge', '#d71920'], ['Orange', '#f47b20'], ['Jaune', '#ffd400'], ['Bleu roi', '#1b4fa3'], ['Bleu clair', '#3aa7e0'], ['Vert', '#1e9e4a'], ['Vert fluo', '#8cff00'], ['Gris', '#8a8d91'], ['Argent', '#c0c3c8'], ['Or', '#c9a227'], ['Rose fluo', '#ff2e93'], ['Violet', '#6a2c91'], ['Anthracite', '#3b3f45'], ['Cyan', '#00b7c3']];
+const VINYL = [['Blanc', '#ffffff'], ['Noir', '#111111'], ['Rouge', '#d71920'], ['Orange', '#f47b20'], ['Jaune', '#ffd400'], ['Bleu roi', '#1b4fa3'], ['Bleu clair', '#3aa7e0'], ['Vert', '#1e9e4a'], ['Vert fluo', '#8cff00'], ['Gris', '#8a8d91'], ['Argent', '#c0c3c8'], ['Or', '#c9a227'], ['Rose fluo', '#ff2e93'], ['Violet', '#6a2c91'], ['Anthracite', '#3b3f45'], ['Cyan', '#00b7c3'], ['Jaune fluo', '#e8ff1a'], ['Orange fluo', '#ff6a13'], ['Vert lime', '#a5d600'], ['Bordeaux', '#7a1020']];
 
 const S = {
   name: 'Ma déco rallye', veh: 'hatch', paint: '#e9ecef',

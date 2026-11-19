@@ -35,6 +35,7 @@
       <label class="f">Sponsors (bas de caisse)<input id="aSponsor" value="PARTENAIRE 1  ·  PARTENAIRE 2  ·  PARTENAIRE 3"></label>
       <div class="btnrow"><label class="f" style="flex:0 0 90px">Variante n°<input id="aSeed" type="number" value="1" min="1"></label>
         <button id="aDice" title="Autre variante aléatoire">🎲 Variante</button></div>
+      <label class="chk" title="Le côté droit reçoit une variante différente du côté gauche"><input type="checkbox" id="aAsym"> Côtés gauche / droit différents</label>
       <label class="chk"><input type="checkbox" id="aClear" checked> Remplacer la déco actuelle</label>
       <button id="styleGo" class="primary wide">✨ Générer la déco</button>
       <button id="blankGo" class="wide" title="Efface la déco et garde la voiture nue">▢ Voiture vierge (partir de zéro)</button>
@@ -98,7 +99,7 @@
     </div>
     <div id="wrap3d"><canvas id="c3d"></canvas>
       <div id="camBtns" class="ovl tl"><button data-c="34av">3/4 AV</button><button data-c="34ar">3/4 AR</button><button data-c="gauche">Gauche</button><button data-c="droite">Droite</button><button data-c="face">Face</button><button data-c="arriere">Arrière</button><button data-c="dessus">Dessus</button>
-        <label><input type="checkbox" id="autoRot">Rotation</label><button id="shot3d">📷 Capture</button></div>
+        <label>Roues <select id="wheelCol"><option value="alu">Argent</option><option value="gold">Or</option><option value="black">Noir</option><option value="white">Blanc</option></select></label><label><input type="checkbox" id="optLamps">Phares add.</label><label><input type="checkbox" id="optWing">Aileron</label><label><input type="checkbox" id="autoRot">Rotation</label><button id="shot3d">📷 Capture</button></div>
     </div>
   </div>
 

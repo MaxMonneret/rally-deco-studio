@@ -182,6 +182,44 @@ const STYLES = {
       c.end('rear', W * .96, H * .3, 'bloc', { facets: 1, reach: 95 }, [1, 2, 2], 167);
     }
   },
+  deuxtons: {
+    name: 'Deux tons Groupe A', blurb: 'Nez, ailes et toit en couleur, portes blanches avec panneau numéro – look 205 / Saxo F2000',
+    pal: [['Rouge', '#d71920'], ['Noir', '#111111'], ['Blanc', '#ffffff']], light: 2, dark: 1, panel: true,
+    fn(c) {
+      const { L, H, W, v } = c;
+      c.side(0, 0, v.door[0] - 20, H, 'bloc', { facets: 1, reach: 100 }, [0, 2, 2], { seed: 171, flip: true });
+      c.side(v.door[2] - 20, 0, L - v.door[2] + 20, H, 'bloc', { facets: 1, reach: 100 }, [0, 2, 2], { seed: 172 });
+      c.side(v.door[0], H * .86, v.door[2] - v.door[0], H * .12, 'lignes', { n: 2, thick: 40, kink: 50, drop: 0 }, [0, 1], { seed: 173 });
+      c.topPart(0, 'bloc', { facets: 1, reach: 100 }, [0, 2, 2], 'hood', 174);
+      c.topPart(1, 'bloc', { facets: 1, reach: 100 }, [0, 2, 2], 'roof', 175);
+      c.end('front', W * .96, H * .3, 'bloc', { facets: 1, reach: 100 }, [0, 2, 2], 176);
+    }
+  },
+  damierax: {
+    name: 'Damier de toit', blurb: 'Toit en damier, diagonale et bandes tricolores qui remontent à l\'arrière – esprit AX GTI',
+    pal: [['Noir', '#111111'], ['Rouge', '#d71920'], ['Blanc', '#ffffff']], light: 2, dark: 0,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(L * .06, H * .62, L * .9, H * .3, 'lignes', { n: 3, thick: 8, kink: 58, drop: -26 }, [0, 1, 0], { seed: 181 });
+      c.topPart(1, 'echiquier', { cell: 52, rows: 5 }, [0], 'roof', 182);
+      c.topPart(0, 'rafale', { n: 2, angle: 38, gap: 35 }, [1, 0], 'hood', 183);
+      c.stripes(W, L, [1, 0, 1]);
+      c.end('front', W * .94, H * .14, 'echiquier', { cell: 36, rows: 2 }, [0], 184);
+      c.end('rear', W * .94, H * .14, 'echiquier', { cell: 36, rows: 2 }, [0], 185);
+    }
+  },
+  swoosh2: {
+    name: 'Courbes Rallye 2', blurb: 'Grand aplat rouge limité par une courbe en S + liserés jaune et noir, capot et toit blancs – esprit C2 R2',
+    pal: [['Rouge', '#d71920'], ['Jaune', '#ffd400'], ['Noir', '#111111']], light: 2, dark: 2,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(0, H * .1, L, H * .88, 'arc', { amp: 32, gap: 30, thick: 26 }, [0, 1, 2], { seed: 191, flip: true });
+      c.topPart(0, 'arc', { amp: 25, gap: 26, thick: 22 }, [0, 1, 2], 'hood', 192);
+      c.topPart(2, 'arc', { amp: 25, gap: 26, thick: 22 }, [0, 1, 2], 'trunk', 193, { flip: true });
+      c.end('front', W * .96, H * .3, 'arc', { amp: 20, gap: 24, thick: 20 }, [0, 1, 2], 194);
+      c.end('rear', W * .96, H * .3, 'arc', { amp: 20, gap: 24, thick: 20 }, [0, 1, 2], 195);
+    }
+  },
   camion: {
     name: 'Camion / Pro (nom de société)', blurb: 'Vagues + gros lettrage société – utilitaires et poids lourds',
     pal: [['Bleu roi', '#1b4fa3'], ['Blanc', '#ffffff'], ['Orange', '#f47b20']], light: 1, dark: 0,
@@ -218,8 +256,9 @@ function applyStyle(key, opt = {}) {
   const c = {
     v, L, H, W, name: opt.company, sub: opt.sub,
     side(lx, ly, lw, lh, gen, params, tiers, o = {}) {
-      const rot = o.rot || 0, flip = !!o.flip, seed = (o.seed || 1) + seed0 * 100;
+      const rot = o.rot || 0, flip = !!o.flip;
       for (const sd of ['left', 'right']) {
+        const seed = (o.seed || 1) + seed0 * 100 + (opt.asym && sd === 'right' ? 57 : 0);
         const lcx = lx + lw / 2, lcy = ly + lh / 2; const r = R[sd];
         const place = sd === 'left' ? { x: r.x + lcx, y: r.y + lcy, rot, fx: flip } : { x: r.x + (L - lcx), y: r.y + lcy, rot: -rot, fx: !flip };
         out.push(...genGroup(gen, params, seed, lw, lh, tiers.map(i => ids[i]), place, 'noglass', STYLES[key].name));
@@ -255,7 +294,7 @@ function applyStyle(key, opt = {}) {
   const rcx = (v.door[0] + v.door[1]) / 2, rcy = H - (v.belt + v.clear) / 2 + 10;
   for (const sd of ['left', 'right']) {
     const r = R[sd], x = sd === 'left' ? r.x + rcx : r.x + (L - rcx), y = r.y + rcy;
-    const disc = shapeObj('ellipse', dd, dd, light, { x, y }); disc.name = 'Rond de porte'; disc.gid = 'rd' + sd;
+    const disc = st.panel ? cobj('Panneau de porte', [G.roundRect(x - dd * .7, y - dd * .48, dd * 1.4, dd * .96, dd * .09)], light) : shapeObj('ellipse', dd, dd, light, { x, y }); disc.name = st.panel ? 'Panneau de porte' : 'Rond de porte'; disc.gid = 'rd' + sd;
     const t = textObj(String(num), 'Anton', dd * .5, 0, 0, 'center', dark, { x, y });
     if (t) { t.gid = disc.gid; t.name = 'N° ' + num; if (S.layers.findIndex(l => l.id === dark) < S.layers.findIndex(l => l.id === light)) punch(disc, t); out.push(disc, t); }
     // nom équipage sur vitre arrière latérale (bandeau bas de vitre)
