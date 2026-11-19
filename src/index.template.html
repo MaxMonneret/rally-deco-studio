@@ -21,7 +21,7 @@
 </header>
 <main>
   <aside id="left">
-    <div class="tabs"><button class="tab on" data-t="tAuto">Déco auto</button><button class="tab" data-t="tPat">Motifs</button><button class="tab" data-t="tTxt">Texte / Logo</button><button class="tab" data-t="tBg">Fonds</button></div>
+    <div class="tabs"><button class="tab on" data-t="tAuto">Déco auto</button><button class="tab" data-t="tPat">Motifs</button><button class="tab" data-t="tTxt">Texte / Logo</button><button class="tab" data-t="tKit">Kit rallye</button><button class="tab" data-t="tKit">Kit rallye</button><button class="tab" data-t="tBg">Fonds</button></div>
 
     <section id="tAuto" class="tabp on">
       <p class="hint">Choisissez un style : l'appli compose une déco complète (côtés, capot, toit, coffre, faces) en <b>couleurs vinyle superposées</b>, avec ronds de porte, équipage, sponsors et bandeau pare-brise. Tout reste modifiable.</p>
@@ -37,6 +37,10 @@
         <button id="aDice" title="Autre variante aléatoire">🎲 Variante</button></div>
       <label class="chk"><input type="checkbox" id="aClear" checked> Remplacer la déco actuelle</label>
       <button id="styleGo" class="primary wide">✨ Générer la déco</button>
+      <button id="blankGo" class="wide" title="Efface la déco et garde la voiture nue">▢ Voiture vierge (partir de zéro)</button>
+      <div class="ptitle small">Couleur de la carrosserie</div><div id="paintChips" class="btnrow"></div>
+      <button id="blankGo" class="wide" title="Efface la déco et garde la voiture nue : vous composez tout vous-même">▢ Voiture vierge (partir de zéro)</button>
+      <div class="ptitle small">Couleur de la carrosserie</div><div id="paintChips" class="btnrow"></div>
     </section>
 
     <section id="tPat" class="tabp">
@@ -73,6 +77,10 @@
       </div>
       <label class="btn wide">Importer un logo…<input type="file" id="logoFile" accept=".svg,image/*" hidden></label>
     </section>
+
+    <section id="tKit" class="tabp"></section>
+
+    <section id="tKit" class="tabp"></section>
 
     <section id="tBg" class="tabp">
       <p class="hint">Ajoutez la photo ou le plan de votre véhicule (PNG / JPG / SVG) comme guide, puis <b>calibrez l'échelle</b> en cliquant 2 points de distance connue. Glisser-déposer d'une image sur la page = fond.</p>

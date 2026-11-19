@@ -190,7 +190,14 @@ function refreshBgs() {
     h('div', { class: 'btnrow' },
       h('button', { onclick: () => { b.vis = !b.vis; commit(); } }, b.vis ? 'Masquer' : 'Afficher'),
       h('button', { onclick: () => { S.calib = { bg: b.id, pts: [] }; toast('Cliquez 2 points de distance connue sur le fond (ex : les extrémités du véhicule)'); draw(); } }, '📏 Calibrer l\'échelle'),
-      h('button', { onclick: () => { const R = REG().total; b.x = 0; b.y = 0; commit(); } }, 'Origine'),
+      h('button', { onclick: () => { b.x = 0; b.y = 0; commit(); } }, 'Origine à 0')),
+    h('div', { class: 'ptitle small' }, "Plan à l'échelle (ex. 1/20)"),
+    h('div', { class: 'btnrow' }, h('span', {}, '1 /'), h('input', { id: 'sc_n_' + b.id, type: 'number', value: 20, style: 'width:52px' }),
+      h('input', { id: 'sc_p_' + b.id, type: 'number', placeholder: 'larg. papier mm', title: 'Largeur du plan imprimé en mm (si connue)', style: 'width:96px' }),
+      h('input', { id: 'sc_d_' + b.id, type: 'number', value: 150, title: "Sinon : résolution de l'image en px/pouce", style: 'width:52px' }), h('span', {}, 'dpi'),
+      h('button', { onclick: () => { const n = parseFloat($('#sc_n_' + b.id).value) || 20, pw = parseFloat($('#sc_p_' + b.id).value), dpi = parseFloat($('#sc_d_' + b.id).value) || 150, r = b.h / b.w; b.w = pw > 0 ? pw * n : b.img.naturalWidth * 25.4 / dpi * n; b.h = b.w * r; commit(); toast("Plan mis à l'échelle 1/" + n + ' : ' + b.w.toFixed(0) + ' mm de large. Vérifiez avec « Calibrer ».'); } }, 'Appliquer')),
+    h('div', { class: 'btnrow' },
+
       h('button', { class: 'danger', onclick: () => { S.bgs = S.bgs.filter(x => x !== b); commit(); } }, '✕')),
     h('label', { class: 'f' }, 'Opacité', h('input', { type: 'range', min: 0.05, max: 1, step: 0.05, value: b.op, oninput: e => { b.op = parseFloat(e.target.value); draw(); }, onchange: () => commit() })),
     h('div', { class: 'grid2' },
@@ -240,6 +247,48 @@ function setMode(m) {
   setTimeout(() => { draw(); resize3D(); }, 30);
 }
 
+
+/* ---------- onglet Kit rallye ---------- */
+function buildKit() {
+  const box = $('#tKit'); if (!box) return; box.innerHTML = '';
+  const ls = (id, idx) => h('select', { id, class: 'layerSel', html: layerOpts(S.layers[idx] && S.layers[idx].id) });
+  const fl = id => h('select', { id, html: '<option value="">— aucun —</option>' + Object.keys(FLAGS).map(k => `<option ${k === 'FR' ? 'selected' : ''}>${k}</option>`).join('') });
+  const inp = (id, v, w) => h('input', { id, value: v, style: w ? 'width:' + w : '' });
+  const row = (lab, ...els) => h('label', { class: 'f' }, lab, ...els);
+  const num = () => ({ num: $('#k_num').value, light: $('#k_nl').value, dark: $('#k_nd').value });
+  box.append(
+    h('p', { class: 'hint' }, "Noms de vitres, drapeaux et groupe sanguin, ronds de porte, numéros, sponsors : à ajouter sur n'importe quelle voiture, même vierge. Les décos automatiques ne débordent plus sur les vitres ; les noms, eux, se posent volontairement sur la vitre."),
+    h('div', { class: 'ptitle small' }, 'Équipage'),
+    h('div', { class: 'grid2' }, row('Pilote', inp('k_pilot', KIT.pilot)), row('Copilote', inp('k_copilot', KIT.copilot)),
+      row('Groupe sanguin pilote', inp('k_bp', KIT.bp)), row('Groupe sanguin copilote', inp('k_bc', KIT.bc)),
+      row('Drapeau pilote', fl('k_fp')), row('Drapeau copilote', fl('k_fc'))),
+    h('div', { class: 'grid2' }, row('Police', h('select', { id: 'k_font', html: FONT_LIST.map(f => `<option value="${f[0]}" ${f[0] === KIT.font ? 'selected' : ''}>${f[1]}</option>`).join('') })),
+      row('Hauteur lettres mm', inp('k_size', KIT.size)),
+      row('Style', h('select', { id: 'k_style', html: '<option value="ombre">Plein + ombre portée</option><option value="plein">Plein</option><option value="italique">Italique</option><option value="contour">Contour seul</option>' })),
+      row('Pilote côté', h('select', { id: 'k_side', html: '<option value="left">Gauche (voiture FR)</option><option value="right">Droite</option>' }))),
+    h('div', { class: 'grid3' }, row('Couleur texte', ls('k_tl', 0)), row('Couleur ombre', ls('k_sl', 1)), row('Fond bandeau', ls('k_bl', 1))),
+    h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'k_flag', checked: true }), 'Drapeau'),
+    h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'k_blood', checked: true }), 'Groupe sanguin (cadre)'),
+    h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'k_band', checked: true }), 'Bandeau de fond sur le pare-brise'),
+    h('div', { class: 'btnrow' },
+      h('button', { onclick: () => addNameKit('vitres') }, '+ Vitres latérales arrière'), h('button', { onclick: () => addNameKit('portes') }, '+ Portières'),
+      h('button', { onclick: () => addNameKit('parebrise') }, '+ Bandeau pare-brise'), h('button', { onclick: () => addNameKit('lunette') }, '+ Lunette arrière')),
+    h('div', { class: 'ptitle small' }, 'Numéros'),
+    h('div', { class: 'grid3' }, row('N° course', inp('k_num', '12')), row('Rond (clair)', ls('k_nl', 2)), row('N° (foncé)', ls('k_nd', 0))),
+    h('div', { class: 'btnrow' }, h('button', { onclick: () => addNumbers(Object.assign(num(), { doors: true })) }, '+ Ronds de porte'), h('button', { onclick: () => addNumbers(Object.assign(num(), { doors: true, panel: true })) }, '+ Panneaux de porte'),
+      h('button', { onclick: () => addNumbers(Object.assign(num(), { roof: true })) }, '+ N° toit'),
+      h('button', { onclick: () => addNumbers(Object.assign(num(), { hood: true })) }, '+ N° capot')),
+    h('div', { class: 'ptitle small' }, 'Sponsors bas de caisse'),
+    row('Texte', inp('k_spt', 'PARTENAIRE 1  ·  PARTENAIRE 2  ·  PARTENAIRE 3')),
+    h('div', { class: 'btnrow' }, ls('k_spl', 0), h('button', { onclick: () => addSponsorStrip($('#k_spt').value, $('#k_spl').value) }, '+ Ajouter')));
+  $('#k_style').value = KIT.style;
+}
+const PAINTS = [['Blanc', '#e9ecef'], ['Noir', '#1a1c20'], ['Gris', '#8a9099'], ['Rouge', '#c4161c'], ['Bleu', '#1b4fa3'], ['Jaune', '#f2c200'], ['Orange', '#f47b20'], ['Vert', '#1f6b3a']];
+function buildPaintChips() {
+  const b = $('#paintChips'); if (!b) return; b.innerHTML = '';
+  PAINTS.forEach(p => b.append(h('button', { title: p[0], style: 'width:34px;height:26px;background:' + p[1], onclick: () => { S.paint = p[1]; $('#paint').value = p[1]; draw(); schedule3D(true); commit(); } })));
+}
+
 /* ---------- démarrage ---------- */
 function startUI() {
   const vs = $('#vehSel'); for (const k in VEHICLES) vs.append(h('option', { value: k }, VEHICLES[k].name));
@@ -264,6 +313,13 @@ function startUI() {
   $('#genTarget').dispatchEvent(new Event('change'));
   $('#logoFile').onchange = e => { if (e.target.files[0]) importLogo(e.target.files[0]); e.target.value = ''; };
   $('#bgFile').onchange = e => { if (e.target.files[0]) addBgFromFile(e.target.files[0]); e.target.value = ''; };
+  buildKit(); buildPaintChips();
+  $('#blankGo').onclick = () => {
+    if (S.objs.length && !confirm("Effacer la déco actuelle et repartir d'une voiture vierge ?")) return;
+    S.objs = []; S.sel = new Set(); S.layers = []; [['Noir', '#111111'], ['Blanc', '#ffffff'], ['Rouge', '#d71920']].forEach(p => addLayer(p[0], p[1])); _layK = null;
+    commit(); buildLeft(); buildKit(); toast('Voiture vierge. Ajoutez motifs, texte, logos ou le Kit rallye ; changez la couleur de carrosserie ci-dessous.');
+  };
+
   $('#styleGo').onclick = () => {
     const opt = { num: $('#aNum').value, crew: $('#aCrew').value, sponsor: $('#aSponsor').value, company: $('#aCompany').value, sub: $('#aSub').value, seed: parseInt($('#aSeed').value) || 1, clear: $('#aClear').checked };
     applyStyle(curStyle, opt); commit(); buildLeft(); fitView(); toast('Déco « ' + STYLES[curStyle].name + ' » générée — modifiez, déplacez, changez les couleurs !');

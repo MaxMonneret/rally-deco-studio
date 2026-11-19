@@ -91,7 +91,7 @@ code{background:#12151a;padding:1px 5px;border-radius:4px}
 </header>
 <main>
   <aside id="left">
-    <div class="tabs"><button class="tab on" data-t="tAuto">Déco auto</button><button class="tab" data-t="tPat">Motifs</button><button class="tab" data-t="tTxt">Texte / Logo</button><button class="tab" data-t="tBg">Fonds</button></div>
+    <div class="tabs"><button class="tab on" data-t="tAuto">Déco auto</button><button class="tab" data-t="tPat">Motifs</button><button class="tab" data-t="tTxt">Texte / Logo</button><button class="tab" data-t="tKit">Kit rallye</button><button class="tab" data-t="tKit">Kit rallye</button><button class="tab" data-t="tBg">Fonds</button></div>
 
     <section id="tAuto" class="tabp on">
       <p class="hint">Choisissez un style : l'appli compose une déco complète (côtés, capot, toit, coffre, faces) en <b>couleurs vinyle superposées</b>, avec ronds de porte, équipage, sponsors et bandeau pare-brise. Tout reste modifiable.</p>
@@ -107,6 +107,10 @@ code{background:#12151a;padding:1px 5px;border-radius:4px}
         <button id="aDice" title="Autre variante aléatoire">🎲 Variante</button></div>
       <label class="chk"><input type="checkbox" id="aClear" checked> Remplacer la déco actuelle</label>
       <button id="styleGo" class="primary wide">✨ Générer la déco</button>
+      <button id="blankGo" class="wide" title="Efface la déco et garde la voiture nue">▢ Voiture vierge (partir de zéro)</button>
+      <div class="ptitle small">Couleur de la carrosserie</div><div id="paintChips" class="btnrow"></div>
+      <button id="blankGo" class="wide" title="Efface la déco et garde la voiture nue : vous composez tout vous-même">▢ Voiture vierge (partir de zéro)</button>
+      <div class="ptitle small">Couleur de la carrosserie</div><div id="paintChips" class="btnrow"></div>
     </section>
 
     <section id="tPat" class="tabp">
@@ -143,6 +147,10 @@ code{background:#12151a;padding:1px 5px;border-radius:4px}
       </div>
       <label class="btn wide">Importer un logo…<input type="file" id="logoFile" accept=".svg,image/*" hidden></label>
     </section>
+
+    <section id="tKit" class="tabp"></section>
+
+    <section id="tKit" class="tabp"></section>
 
     <section id="tBg" class="tabp">
       <p class="hint">Ajoutez la photo ou le plan de votre véhicule (PNG / JPG / SVG) comme guide, puis <b>calibrez l'échelle</b> en cliquant 2 points de distance connue. Glisser-déposer d'une image sur la page = fond.</p>
@@ -9024,6 +9032,43 @@ const GENS = {
       const R = [G.rect(0, 0, w, h)]; return tiers.map(t => G.inter(t, R));
     }
   },
+  eclair: {
+    label: 'Éclair (bande en zigzag)', tiers: 3, desc: 'Bande épaisse en marches d\'escalier + 2 liserés – esprit Gr.A',
+    params: { steps: ['Marches', 1, 4, 2], thick: ['Épaisseur % haut.', 8, 40, 20], rise: ['Montée %', 10, 70, 35] },
+    fn(w, h, rnd, p) {
+      const st = Math.round(p.steps ?? 2), th = h * (p.thick ?? 20) / 100, rise = h * (p.rise ?? 35) / 100, y0 = h - th * 1.4, pts = [[-th, y0]]; let x = 0, y = y0; const seg = w / (st + 0.5);
+      for (let i = 0; i < st; i++) { x += seg * 0.62; pts.push([x, y]); x += rise / st * 0.9; y -= rise / st; pts.push([x, y]); }
+      pts.push([w + th, y]);
+      const t = [[], [], []]; t[0].push(ribbon(pts, () => th));
+      t[1].push(ribbon(pts.map(q => [q[0], q[1] + th * 0.95]), () => th * 0.36)); t[2].push(ribbon(pts.map(q => [q[0], q[1] + th * 1.5]), () => th * 0.16));
+      const R = [G.rect(0, 0, w, h)]; return t.map(a => G.inter(a, R));
+    }
+  },
+  bloc: {
+    label: 'Bloc biseauté + liserés', tiers: 3, desc: 'Grand aplat à bord angulaire suivi de 2 liserés parallèles (bicolore sport)',
+    params: { facets: ['Facettes', 1, 4, 2], reach: ['Largeur du bloc %', 20, 90, 55] },
+    fn(w, h, rnd, p) {
+      const nf = Math.round(p.facets ?? 2), W0 = w * (p.reach ?? 55) / 100, edge = [[W0 * (0.85 + rnd() * 0.3), 0]];
+      for (let i = 1; i <= nf; i++) edge.push([W0 * (0.55 + rnd() * 0.6), h * i / (nf + 1)]);
+      edge.push([W0 * (0.85 + rnd() * 0.3), h]);
+      const gap = Math.max(26, h * 0.05), lw = Math.max(14, h * 0.035), sh = d => edge.map(q => [q[0] + d, q[1]]);
+      const R = [G.rect(0, 0, w, h)];
+      return [G.inter([[[0, 0], ...edge, [0, h]]], R), G.inter([ribbon(sh(gap + lw / 2), () => lw)], R), G.inter([ribbon(sh(gap * 2 + lw * 1.5), () => lw * 1.6)], R)];
+    }
+  },
+  camo: {
+    label: 'Camo (taches organiques)', tiers: 3, desc: 'Grosses taches lisses en 3 couleurs superposées – aplats, aucun dégradé',
+    params: { n: ['Taches', 6, 40, 18], size: ['Taille %', 8, 40, 20] },
+    fn(w, h, rnd, p) {
+      const n = Math.round(p.n ?? 18), t = [[], [], []];
+      for (let i = 0; i < n; i++) {
+        const R0 = Math.min(w, h) * (p.size ?? 20) / 100 * (0.45 + rnd() * 0.8), cx = w * rnd(), cy = h * rnd(), st = 1 + rnd() * 1.1, an = rnd() * Math.PI, f = [rnd() * 6, rnd() * 6], pts = [];
+        for (let k = 0; k < 40; k++) { const a = k / 40 * Math.PI * 2, r = R0 * (1 + 0.3 * Math.sin(2 * a + f[0]) + 0.18 * Math.sin(3 * a + f[1])), px = Math.cos(a) * r * st, py = Math.sin(a) * r; pts.push([cx + px * Math.cos(an) - py * Math.sin(an), cy + px * Math.sin(an) + py * Math.cos(an)]); }
+        t[Math.floor(rnd() * 3)].push(G.chaikin(pts, 1));
+      }
+      const R = [G.rect(0, 0, w, h)]; return t.map(a => G.inter(a, R));
+    }
+  },
   damier: {
     label: 'Damier dégradé (déconseillé : fondu)', tiers: 1, desc: 'Carrés qui disparaissent progressivement',
     params: { cell: ['Taille case mm', 15, 120, 45], fade: ['Dégradé', 0, 100, 70] },
@@ -9818,6 +9863,54 @@ const STYLES = {
       c.end('rear', W * .96, H * .22, 'lignes', { n: 4, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 113);
     }
   },
+  eclair: {
+    name: 'Éclair Groupe A', blurb: 'Bande en marches d\'escalier bleu / jaune + liserés sur flancs blancs – esprit 106 / Saxo Gr.A',
+    pal: [['Bleu roi', '#1b4fa3'], ['Jaune', '#ffd400'], ['Blanc', '#ffffff']], light: 2, dark: 0,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(-L * .02, H * .45, L * 1.04, H * .5, 'eclair', { steps: 2, thick: 20, rise: 38 }, [0, 1, 0], { seed: 121 });
+      c.topPart(0, 'eclair', { steps: 1, thick: 24, rise: 30 }, [0, 1, 0], 'hood', 122);
+      c.topPart(2, 'eclair', { steps: 1, thick: 24, rise: 30 }, [0, 1, 0], 'trunk', 123, { flip: true });
+      c.end('front', W * .96, H * .24, 'lignes', { n: 3, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 124);
+      c.end('rear', W * .96, H * .24, 'lignes', { n: 3, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 125);
+    }
+  },
+  bicolore: {
+    name: 'Bicolore Biseauté', blurb: 'Grand bloc jaune à bord angulaire + liserés noirs – esprit Clio Super 1600',
+    pal: [['Jaune', '#ffd400'], ['Noir', '#111111'], ['Blanc', '#ffffff']], light: 2, dark: 1,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(0, H * .1, L * .62, H * .84, 'bloc', { facets: 2, reach: 85 }, [0, 1, 0], { seed: 131, flip: true });
+      c.topPart(0, 'bloc', { facets: 2, reach: 70 }, [0, 1, 0], 'hood', 132);
+      c.topPart(1, 'bloc', { facets: 1, reach: 60 }, [1, 0, 1], 'roof', 133);
+      c.end('front', W * .96, H * .3, 'bloc', { facets: 2, reach: 70 }, [0, 1, 0], 134);
+      c.end('rear', W * .96, H * .3, 'bloc', { facets: 2, reach: 60 }, [0, 1, 0], 135);
+    }
+  },
+  camo: {
+    name: 'Camo Rallye', blurb: 'Grosses taches orange / bleu / noir superposées – look libre « showcar », aplats simples à peler',
+    pal: [['Orange', '#f47b20'], ['Bleu roi', '#1b4fa3'], ['Noir', '#111111']], light: 2, dark: 2,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(L * .02, H * .12, L * .96, H * .84, 'camo', { n: 20, size: 18 }, [0, 1, 2], { seed: 141 });
+      c.topPart(0, 'camo', { n: 12, size: 22 }, [0, 1, 2], 'hood', 142);
+      c.topPart(1, 'camo', { n: 10, size: 22 }, [1, 2, 0], 'roof', 143);
+      c.topPart(2, 'camo', { n: 12, size: 22 }, [2, 0, 1], 'trunk', 144);
+      c.end('front', W * .96, H * .3, 'camo', { n: 10, size: 22 }, [0, 1, 2], 145);
+      c.end('rear', W * .96, H * .3, 'camo', { n: 10, size: 22 }, [0, 1, 2], 146);
+    }
+  },
+  groupeN: {
+    name: 'Sobre Groupe N', blurb: 'Bandes de bas de caisse + faces, le reste laissé à la couleur d\'origine – sobre, rapide à poser',
+    pal: [['Bleu roi', '#1b4fa3'], ['Rouge', '#d71920'], ['Blanc', '#ffffff']], light: 2, dark: 0,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(0, H * .8, L, H * .14, 'lignes', { n: 3, thick: 22, kink: 52, drop: 0 }, [0, 1, 0], { seed: 151 });
+      c.side(L * .55, H * .42, L * .45, H * .3, 'rafale', { n: 3, angle: 40, gap: 45 }, [0, 1], { seed: 152 });
+      c.end('front', W * .96, H * .2, 'lignes', { n: 3, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 153);
+      c.end('rear', W * .96, H * .2, 'lignes', { n: 3, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 154);
+    }
+  },
   camion: {
     name: 'Camion / Pro (nom de société)', blurb: 'Vagues + gros lettrage société – utilitaires et poids lourds',
     pal: [['Bleu roi', '#1b4fa3'], ['Blanc', '#ffffff'], ['Orange', '#f47b20']], light: 1, dark: 0,
@@ -9858,13 +9951,13 @@ function applyStyle(key, opt = {}) {
       for (const sd of ['left', 'right']) {
         const lcx = lx + lw / 2, lcy = ly + lh / 2; const r = R[sd];
         const place = sd === 'left' ? { x: r.x + lcx, y: r.y + lcy, rot, fx: flip } : { x: r.x + (L - lcx), y: r.y + lcy, rot: -rot, fx: !flip };
-        out.push(...genGroup(gen, params, seed, lw, lh, tiers.map(i => ids[i]), place, 'body', STYLES[key].name));
+        out.push(...genGroup(gen, params, seed, lw, lh, tiers.map(i => ids[i]), place, 'noglass', STYLES[key].name));
       }
     },
     sideText(lx, ly, str, font, size, track, skew, layerIdx) {
       for (const sd of ['left', 'right']) {
         const r = R[sd]; const x = sd === 'left' ? r.x + lx : r.x + (L - lx);
-        const t = textObj(str, font, size, track, skew, 'center', ids[layerIdx], { x, y: r.y + ly }); if (t) { t.clip = 'body'; out.push(t); }
+        const t = textObj(str, font, size, track, skew, 'center', ids[layerIdx], { x, y: r.y + ly }); if (t) { t.clip = 'noglass'; out.push(t); }
       }
     },
     topPart(tierShift, gen, params, tiers, zone, seed, o = {}) {
@@ -9872,16 +9965,16 @@ function applyStyle(key, opt = {}) {
       const r = R.top, len = z.y1 - z.y0, wid = Math.min(W * .96, 2 * hwAt((z.y0 + z.y1) / 2) * .98);
       const rot = o.rot ?? -90, wScale = o.scaleH || 1;
       const place = { x: r.x + W / 2, y: r.y + (z.y0 + z.y1) / 2, rot, fx: !!o.flip };
-      out.push(...genGroup(gen, params, seed + seed0 * 100, len, wid * wScale, tiers.map(i => ids[i]), place, 'body', STYLES[key].name));
+      out.push(...genGroup(gen, params, seed + seed0 * 100, len, wid * wScale, tiers.map(i => ids[i]), place, 'noglass', STYLES[key].name));
     },
     stripes(w, l, tiers) { // bandes centrales (dessus)
       const r = R.top, sw = W * .38;
       const place = { x: r.x + W / 2, y: r.y + l / 2, rot: 0 };
-      out.push(...genGroup('bandes', { skew: 0, gap: 28 }, 5, sw, l * .995, tiers.map(i => ids[i]), place, 'body', 'Bandes racing'));
+      out.push(...genGroup('bandes', { skew: 0, gap: 28 }, 5, sw, l * .995, tiers.map(i => ids[i]), place, 'noglass', 'Bandes racing'));
     },
     end(view, w, h, gen, params, tiers, seed) {
       const r = R[view]; const place = { x: r.x + W / 2, y: r.y + H - Math.max(v.frontBot, 300) - h * .35 };
-      out.push(...genGroup(gen, params, seed + seed0 * 100, w, h, tiers.map(i => ids[i]), place, 'body', STYLES[key].name));
+      out.push(...genGroup(gen, params, seed + seed0 * 100, w, h, tiers.map(i => ids[i]), place, 'noglass', STYLES[key].name));
     }
   };
   st.fn(c);
@@ -9901,7 +9994,7 @@ function applyStyle(key, opt = {}) {
     // sponsors bas de caisse
     const x0 = v.wheels[0].x + v.wheels[0].r + 90, x1 = v.wheels[1].x - v.wheels[1].r - 90;
     const sp = textObj(opt.sponsor || 'PARTENAIRE 1  ·  PARTENAIRE 2  ·  PARTENAIRE 3', 'BebasNeue', Math.max(36, (v.belt - v.clear) * .07), 5, 0, 'center', dark, { x: sd === 'left' ? r.x + (x0 + x1) / 2 : r.x + (L - (x0 + x1) / 2), y: r.y + H - v.clear - 105 });
-    if (sp) { const bb = G.bbox(sp.rings); if (bb.w > x1 - x0) { sp.sx = sp.sy = (x1 - x0) / bb.w; } sp.name = 'Sponsors bas de caisse'; sp.clip = 'body'; out.push(sp); }
+    if (sp) { const bb = G.bbox(sp.rings); if (bb.w > x1 - x0) { sp.sx = sp.sy = (x1 - x0) / bb.w; } sp.name = 'Sponsors bas de caisse'; sp.clip = 'noglass'; out.push(sp); }
   }
   // numéro sur le toit
   if (v.rg[0] - v.ws[1] > 300) {
@@ -9914,10 +10007,124 @@ function applyStyle(key, opt = {}) {
     const r = R.top, ybn = v.ws[0] + 150, bw = hwAt(ybn) * 2 * .8, bh = 150;
     const bar = makeObj({ name: 'Bandeau pare-brise', rings: G.center([G.rect(0, 0, bw, bh)]).rings, layer: dark, x: r.x + W / 2, y: r.y + ybn, clip: 'none', gid: 'bn' });
     const bt = textObj((opt.crew || 'PILOTE / COPILOTE'), 'RacingSansOne', 90, 4, 0, 'center', light, { x: r.x + W / 2, y: r.y + ybn });
-    if (bt) { const bb = G.bbox(bt.rings); if (bb.w > bw * .92) { bt.sx = bt.sy = bw * .92 / bb.w; } bt.gid = 'bn'; if (S.layers.findIndex(l => l.id === light) < S.layers.findIndex(l => l.id === dark)) punch(bar, bt); out.push(bar, bt); }
+    if (bt) { const bb = G.bbox(bt.rings); if (bb.w > bw * .92) { bt.sx = bt.sy = bw * .92 / bb.w; } bt.rot = 180; bt.gid = 'bn'; if (S.layers.findIndex(l => l.id === light) < S.layers.findIndex(l => l.id === dark)) punch(bar, bt); out.push(bar, bt); }
   }
   S.objs.push(...out);
   S.sel = new Set();
+}
+
+/* ---- kit.js ---- */
+/* ===== kit.js : kit rallye — noms de vitres (+ drapeau + groupe sanguin), ronds de porte, numéros, sponsors ===== */
+'use strict';
+const KIT = { pilot: 'DUPONT', copilot: 'MARTIN', bp: 'A+', bc: 'O+', fp: 'FR', fc: 'FR', font: 'RussoOne', size: 62, style: 'ombre', flag: true, blood: true, pilotSide: 'left', band: true };
+const FLAG_COL = { '#1b4fa3': 'Bleu roi', '#ffffff': 'Blanc', '#d71920': 'Rouge', '#111111': 'Noir', '#ffd400': 'Jaune', '#1f9d55': 'Vert' };
+const FLAGS = { // c : couleurs ; v : bandes verticales ; r : proportions
+  FR: { c: ['#1b4fa3', '#ffffff', '#d71920'], v: true }, BE: { c: ['#111111', '#ffd400', '#d71920'], v: true }, IT: { c: ['#1f9d55', '#ffffff', '#d71920'], v: true },
+  DE: { c: ['#111111', '#d71920', '#ffd400'] }, NL: { c: ['#d71920', '#ffffff', '#1b4fa3'] }, ES: { c: ['#d71920', '#ffd400', '#d71920'], r: [0.25, 0.5, 0.25] }, CH: { cross: true }
+};
+const layerForColor = hex => { let l = S.layers.find(l => l.color.toLowerCase() === hex.toLowerCase()); if (!l) l = addLayer(FLAG_COL[hex.toLowerCase()] || hex, hex); return l.id; };
+function cobj(name, rings, layer, extra) { // objet recentré sur sa boîte englobante (rings en coordonnées monde)
+  const b = G.bbox(rings); return makeObj(Object.assign({ name, rings: G.xf(rings, [1, 0, 0, 1, -b.cx, -b.cy]), x: b.cx, y: b.cy, layer }, extra || {}));
+}
+function flagObjs(code, cx, cy, fw, fh) {
+  const F = FLAGS[code]; if (!F) return []; const out = [], x0 = cx - fw / 2, y0 = cy - fh / 2;
+  if (F.cross) {
+    const s = Math.min(fw, fh), sx = cx - s / 2, sy = cy - s / 2, a = s * 0.2, hb = [sx + s * .2, cy - a / 2, s * .6, a], vb = [cx - a / 2, sy + s * .2, a, s * .6];
+    const cross = G.union([G.rect(...hb), G.rect(...vb)]);
+    out.push(cobj('Drapeau CH rouge', G.diff([G.rect(sx, sy, s, s)], cross), layerForColor('#d71920')), cobj('Drapeau CH croix', cross, layerForColor('#ffffff'))); return out;
+  }
+  const r = F.r || [1 / 3, 1 / 3, 1 / 3]; let acc = 0;
+  F.c.forEach((col, i) => { const f = r[i]; const rg = F.v ? G.rect(x0 + acc * fw, y0, f * fw, fh) : G.rect(x0, y0 + acc * fh, fw, f * fh); acc += f; out.push(cobj('Drapeau ' + code + ' ' + (i + 1), [rg], layerForColor(col))); });
+  return out;
+}
+/** étiquette « drapeau + NOM + groupe sanguin » centrée en (cx,cy) */
+function nameTag(o) {
+  const gid = 'k' + nid(); let size = o.size;
+  const meas = s => {
+    const tw = G.bbox(textRings(o.name, o.font, s, 2, o.style === 'italique' ? 8 : 0, 'left')).w, fw = s * 1.45, gap = s * 0.45, bt = o.blood ? G.bbox(textRings(o.blood, o.font, s * 0.8, 1, 0, 'left')).w : 0, pad = s * 0.38, bw = bt + pad * 2;
+    return { tw, fw, gap, bt, pad, bw, total: (o.flag ? fw + gap : 0) + tw + (o.blood ? gap + bw : 0) };
+  };
+  let m = meas(size); if (m.total > o.maxW) { size *= o.maxW / m.total; m = meas(size); }
+  const out = []; let x = o.cx - m.total / 2; const rotPt = px => o.rot === 180 ? 2 * o.cx - px : px;
+  const place = (ob, px, py) => { ob.x = rotPt(px); ob.y = py; if (o.rot) ob.rot = o.rot; ob.gid = gid; out.push(ob); };
+  if (o.flag && FLAGS[o.flagCode]) { const fo = flagObjs(o.flagCode, 0, 0, m.fw, size * 1.0); fo.forEach(f => { f.x = rotPt(x + m.fw / 2 + f.x); f.y = o.cy + f.y; if (o.rot) f.rot = o.rot; f.gid = gid; out.push(f); }); x += m.fw + m.gap; }
+  const styleText = (t, s) => {
+    if (o.style === 'contour') { const w = G.union(t.rings), h = G.diff(w, G.offset(w, -Math.max(2.5, s * 0.07))); t.rings = h; t.lb = G.bbox(h); }
+    return t;
+  };
+  const addText = (str, s, px, track, layer) => {
+    const t = textObj(str, o.font, s, track, o.style === 'italique' ? 8 : 0, 'center', layer, { x: 0, y: 0 }); if (!t) return;
+    styleText(t, s); t.name = 'Nom « ' + str + ' »';
+    if (o.style === 'ombre' && o.sl) { const sh = textObj(str, o.font, s, track, o.style === 'italique' ? 8 : 0, 'center', o.sl, { x: 0, y: 0 }); const d = Math.max(2.5, s * 0.09); if (sh) { sh.name = 'Ombre « ' + str + ' »'; place(sh, px + d, o.cy + d); } }
+    place(t, px, o.cy);
+  };
+  addText(o.name, size, x + m.tw / 2, 2, o.tl);
+  x += m.tw;
+  if (o.blood) {
+    x += m.gap; const h = size * 1.5, t = Math.max(3, size * 0.09), w = m.bw;
+    const ring = G.diff([G.roundRect(-w / 2, -h / 2, w, h, size * 0.3)], [G.roundRect(-w / 2 + t, -h / 2 + t, w - 2 * t, h - 2 * t, size * 0.3 - t)]);
+    place(cobj('Cadre groupe sanguin', ring, o.tl), x + w / 2, o.cy);
+    addText(o.blood, size * 0.8, x + w / 2, 1, o.tl);
+  }
+  return out;
+}
+function readKit() {
+  const g = id => { const e = $('#' + id); return e ? e.value : ''; };
+  return { pilot: g('k_pilot'), copilot: g('k_copilot'), bp: g('k_bp'), bc: g('k_bc'), fp: g('k_fp'), fc: g('k_fc'), font: g('k_font') || 'RussoOne', size: parseFloat(g('k_size')) || 62, style: g('k_style'), flag: $('#k_flag').checked, blood: $('#k_blood').checked, pilotSide: g('k_side'), band: $('#k_band').checked, tl: g('k_tl'), sl: g('k_sl'), bl: g('k_bl') };
+}
+function addNameKit(target) {
+  const v = V(), R = REG(), { L, H, W } = v, K = readKit(), out = [];
+  const base = (who, extra) => Object.assign({ name: who === 'p' ? K.pilot : K.copilot, blood: K.blood ? (who === 'p' ? K.bp : K.bc) : '', flag: K.flag, flagCode: who === 'p' ? K.fp : K.fc, font: K.font, style: K.style, tl: K.tl, sl: K.sl, size: K.size, rot: 0 }, extra);
+  const pSide = K.pilotSide, cSide = pSide === 'left' ? 'right' : 'left';
+  if (target === 'vitres' || target === 'portes') {
+    const win = target === 'vitres';
+    for (const sd of ['left', 'right']) {
+      const who = sd === pSide ? 'p' : 'c', r = R[sd], gx = win ? (v.door[1] + v.door[2]) / 2 + 100 : (v.door[0] + v.door[1]) / 2, cx = sd === 'left' ? r.x + gx : r.x + (L - gx);
+      const cy = r.y + H - v.belt + (win ? -70 : 90), maxW = (win ? v.door[2] - v.door[1] : v.door[1] - v.door[0]) * 0.85;
+      if (!base(who).name) continue; out.push(...nameTag(base(who, { cx, cy, maxW, size: K.size * (win ? 1 : 0.85) })));
+    }
+  } else if (target === 'parebrise') {
+    const r = R.top, ybn = v.ws[0] + 150, bw = halfWidth(v, ybn) * 2 * .8, bh = K.size * 2.3, cx = r.x + W / 2, cy = r.y + ybn;
+    if (K.band && K.bl) out.push(cobj('Bandeau pare-brise', [G.roundRect(cx - bw / 2, cy - bh / 2, bw, bh, bh * 0.15)], K.bl, { gid: 'k' + nid() }));
+    // lu depuis l'avant : le copilote est à gauche (côté pilote = gauche voiture => à droite pour l'observateur)
+    const left = pSide === 'left' ? 'c' : 'p', right = pSide === 'left' ? 'p' : 'c';
+    [[left, -1], [right, 1]].forEach(([who, s]) => { if (base(who).name) out.push(...nameTag(base(who, { cx: cx + s * bw / 4, cy, maxW: bw / 2 * 0.9, rot: 180, size: K.size * 0.9 }))); });
+  } else if (target === 'lunette') {
+    const r = R.rear, cy = r.y + H * 0.3, cx = r.x + W / 2, left = pSide === 'left' ? 'p' : 'c', right = pSide === 'left' ? 'c' : 'p';
+    [[left, -1], [right, 1]].forEach(([who, s]) => { if (base(who).name) out.push(...nameTag(base(who, { cx: cx + s * W * 0.2, cy, maxW: W * 0.36, size: K.size * 0.8 }))); });
+  }
+  if (!out.length) { toast('Rien à ajouter : saisissez au moins un nom.'); return; }
+  S.objs.push(...out); S.sel = new Set(out.map(o => o.id)); commit(); toast('Ajouté (' + out.length + ' éléments, groupés par étiquette). Vérifiez les couleurs/calques.');
+}
+function addNumbers(opt) { // ronds de porte + numéro, numéro de toit, numéro de capot
+  const v = V(), R = REG(), { L, H, W } = v, out = [], num = opt.num || '12', light = opt.light, dark = opt.dark;
+  const dd = Math.min(v.id === 'truck' ? 640 : 380, (v.belt - v.clear) * .55);
+  if (opt.doors) {
+    const rcx = (v.door[0] + v.door[1]) / 2, rcy = H - (v.belt + v.clear) / 2 + 10;
+    for (const sd of ['left', 'right']) {
+      const r = R[sd], x = sd === 'left' ? r.x + rcx : r.x + (L - rcx), y = r.y + rcy;
+      const disc = opt.panel ? cobj('Panneau de porte', [G.roundRect(x - dd * .7, y - dd * .48, dd * 1.4, dd * .96, dd * .09)], light) : shapeObj('ellipse', dd, dd, light, { x, y }); disc.name = opt.panel ? 'Panneau de porte' : 'Rond de porte'; disc.gid = 'rd' + sd + nid();
+      const t = textObj(String(num), 'Anton', dd * .5, 0, 0, 'center', dark, { x, y });
+      if (t) { t.gid = disc.gid; t.name = 'N° ' + num; if (S.layers.findIndex(l => l.id === dark) < S.layers.findIndex(l => l.id === light)) punch(disc, t); out.push(disc, t); }
+    }
+  }
+  if (opt.roof && v.rg[0] - v.ws[1] > 300) {
+    const r = R.top, y = (v.ws[1] + v.rg[0]) / 2, rn = textObj(String(num), 'Anton', Math.min(W * .34, (v.rg[0] - v.ws[1]) * .4), 0, 0, 'center', dark, { x: r.x + W / 2, y: r.y + y });
+    if (rn) { rn.rot = -90; rn.name = 'N° toit'; out.push(rn); }
+  }
+  if (opt.hood && v.ws[0] > 500) {
+    const r = R.top, y = v.ws[0] * 0.48, hn = textObj(String(num), 'Anton', Math.min(W * .26, v.ws[0] * .3), 0, 0, 'center', dark, { x: r.x + W / 2, y: r.y + y });
+    if (hn) { hn.rot = -90; hn.name = 'N° capot'; out.push(hn); }
+  }
+  if (!out.length) return; S.objs.push(...out); S.sel = new Set(out.map(o => o.id)); commit();
+}
+function addSponsorStrip(str, layer) {
+  const v = V(), R = REG(), { L, H } = v, out = [], x0 = v.wheels[0].x + v.wheels[0].r + 90, x1 = v.wheels[1].x - v.wheels[1].r - 90;
+  for (const sd of ['left', 'right']) {
+    const r = R[sd], sp = textObj(str || 'PARTENAIRE 1  ·  PARTENAIRE 2', 'BebasNeue', Math.max(36, (v.belt - v.clear) * .07), 5, 0, 'center', layer, { x: sd === 'left' ? r.x + (x0 + x1) / 2 : r.x + (L - (x0 + x1) / 2), y: r.y + H - v.clear - 105 });
+    if (sp) { const bb = G.bbox(sp.rings); if (bb.w > x1 - x0) sp.sx = sp.sy = (x1 - x0) / bb.w; sp.name = 'Sponsors bas de caisse'; sp.clip = 'body'; out.push(sp); }
+  }
+  if (out.length) { S.objs.push(...out); S.sel = new Set(out.map(o => o.id)); commit(); }
 }
 
 /* ---- view3d.js ---- */
@@ -10504,7 +10711,14 @@ function refreshBgs() {
     h('div', { class: 'btnrow' },
       h('button', { onclick: () => { b.vis = !b.vis; commit(); } }, b.vis ? 'Masquer' : 'Afficher'),
       h('button', { onclick: () => { S.calib = { bg: b.id, pts: [] }; toast('Cliquez 2 points de distance connue sur le fond (ex : les extrémités du véhicule)'); draw(); } }, '📏 Calibrer l\'échelle'),
-      h('button', { onclick: () => { const R = REG().total; b.x = 0; b.y = 0; commit(); } }, 'Origine'),
+      h('button', { onclick: () => { b.x = 0; b.y = 0; commit(); } }, 'Origine à 0')),
+    h('div', { class: 'ptitle small' }, "Plan à l'échelle (ex. 1/20)"),
+    h('div', { class: 'btnrow' }, h('span', {}, '1 /'), h('input', { id: 'sc_n_' + b.id, type: 'number', value: 20, style: 'width:52px' }),
+      h('input', { id: 'sc_p_' + b.id, type: 'number', placeholder: 'larg. papier mm', title: 'Largeur du plan imprimé en mm (si connue)', style: 'width:96px' }),
+      h('input', { id: 'sc_d_' + b.id, type: 'number', value: 150, title: "Sinon : résolution de l'image en px/pouce", style: 'width:52px' }), h('span', {}, 'dpi'),
+      h('button', { onclick: () => { const n = parseFloat($('#sc_n_' + b.id).value) || 20, pw = parseFloat($('#sc_p_' + b.id).value), dpi = parseFloat($('#sc_d_' + b.id).value) || 150, r = b.h / b.w; b.w = pw > 0 ? pw * n : b.img.naturalWidth * 25.4 / dpi * n; b.h = b.w * r; commit(); toast("Plan mis à l'échelle 1/" + n + ' : ' + b.w.toFixed(0) + ' mm de large. Vérifiez avec « Calibrer ».'); } }, 'Appliquer')),
+    h('div', { class: 'btnrow' },
+
       h('button', { class: 'danger', onclick: () => { S.bgs = S.bgs.filter(x => x !== b); commit(); } }, '✕')),
     h('label', { class: 'f' }, 'Opacité', h('input', { type: 'range', min: 0.05, max: 1, step: 0.05, value: b.op, oninput: e => { b.op = parseFloat(e.target.value); draw(); }, onchange: () => commit() })),
     h('div', { class: 'grid2' },
@@ -10554,6 +10768,48 @@ function setMode(m) {
   setTimeout(() => { draw(); resize3D(); }, 30);
 }
 
+
+/* ---------- onglet Kit rallye ---------- */
+function buildKit() {
+  const box = $('#tKit'); if (!box) return; box.innerHTML = '';
+  const ls = (id, idx) => h('select', { id, class: 'layerSel', html: layerOpts(S.layers[idx] && S.layers[idx].id) });
+  const fl = id => h('select', { id, html: '<option value="">— aucun —</option>' + Object.keys(FLAGS).map(k => `<option ${k === 'FR' ? 'selected' : ''}>${k}</option>`).join('') });
+  const inp = (id, v, w) => h('input', { id, value: v, style: w ? 'width:' + w : '' });
+  const row = (lab, ...els) => h('label', { class: 'f' }, lab, ...els);
+  const num = () => ({ num: $('#k_num').value, light: $('#k_nl').value, dark: $('#k_nd').value });
+  box.append(
+    h('p', { class: 'hint' }, "Noms de vitres, drapeaux et groupe sanguin, ronds de porte, numéros, sponsors : à ajouter sur n'importe quelle voiture, même vierge. Les décos automatiques ne débordent plus sur les vitres ; les noms, eux, se posent volontairement sur la vitre."),
+    h('div', { class: 'ptitle small' }, 'Équipage'),
+    h('div', { class: 'grid2' }, row('Pilote', inp('k_pilot', KIT.pilot)), row('Copilote', inp('k_copilot', KIT.copilot)),
+      row('Groupe sanguin pilote', inp('k_bp', KIT.bp)), row('Groupe sanguin copilote', inp('k_bc', KIT.bc)),
+      row('Drapeau pilote', fl('k_fp')), row('Drapeau copilote', fl('k_fc'))),
+    h('div', { class: 'grid2' }, row('Police', h('select', { id: 'k_font', html: FONT_LIST.map(f => `<option value="${f[0]}" ${f[0] === KIT.font ? 'selected' : ''}>${f[1]}</option>`).join('') })),
+      row('Hauteur lettres mm', inp('k_size', KIT.size)),
+      row('Style', h('select', { id: 'k_style', html: '<option value="ombre">Plein + ombre portée</option><option value="plein">Plein</option><option value="italique">Italique</option><option value="contour">Contour seul</option>' })),
+      row('Pilote côté', h('select', { id: 'k_side', html: '<option value="left">Gauche (voiture FR)</option><option value="right">Droite</option>' }))),
+    h('div', { class: 'grid3' }, row('Couleur texte', ls('k_tl', 0)), row('Couleur ombre', ls('k_sl', 1)), row('Fond bandeau', ls('k_bl', 1))),
+    h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'k_flag', checked: true }), 'Drapeau'),
+    h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'k_blood', checked: true }), 'Groupe sanguin (cadre)'),
+    h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'k_band', checked: true }), 'Bandeau de fond sur le pare-brise'),
+    h('div', { class: 'btnrow' },
+      h('button', { onclick: () => addNameKit('vitres') }, '+ Vitres latérales arrière'), h('button', { onclick: () => addNameKit('portes') }, '+ Portières'),
+      h('button', { onclick: () => addNameKit('parebrise') }, '+ Bandeau pare-brise'), h('button', { onclick: () => addNameKit('lunette') }, '+ Lunette arrière')),
+    h('div', { class: 'ptitle small' }, 'Numéros'),
+    h('div', { class: 'grid3' }, row('N° course', inp('k_num', '12')), row('Rond (clair)', ls('k_nl', 2)), row('N° (foncé)', ls('k_nd', 0))),
+    h('div', { class: 'btnrow' }, h('button', { onclick: () => addNumbers(Object.assign(num(), { doors: true })) }, '+ Ronds de porte'), h('button', { onclick: () => addNumbers(Object.assign(num(), { doors: true, panel: true })) }, '+ Panneaux de porte'),
+      h('button', { onclick: () => addNumbers(Object.assign(num(), { roof: true })) }, '+ N° toit'),
+      h('button', { onclick: () => addNumbers(Object.assign(num(), { hood: true })) }, '+ N° capot')),
+    h('div', { class: 'ptitle small' }, 'Sponsors bas de caisse'),
+    row('Texte', inp('k_spt', 'PARTENAIRE 1  ·  PARTENAIRE 2  ·  PARTENAIRE 3')),
+    h('div', { class: 'btnrow' }, ls('k_spl', 0), h('button', { onclick: () => addSponsorStrip($('#k_spt').value, $('#k_spl').value) }, '+ Ajouter')));
+  $('#k_style').value = KIT.style;
+}
+const PAINTS = [['Blanc', '#e9ecef'], ['Noir', '#1a1c20'], ['Gris', '#8a9099'], ['Rouge', '#c4161c'], ['Bleu', '#1b4fa3'], ['Jaune', '#f2c200'], ['Orange', '#f47b20'], ['Vert', '#1f6b3a']];
+function buildPaintChips() {
+  const b = $('#paintChips'); if (!b) return; b.innerHTML = '';
+  PAINTS.forEach(p => b.append(h('button', { title: p[0], style: 'width:34px;height:26px;background:' + p[1], onclick: () => { S.paint = p[1]; $('#paint').value = p[1]; draw(); schedule3D(true); commit(); } })));
+}
+
 /* ---------- démarrage ---------- */
 function startUI() {
   const vs = $('#vehSel'); for (const k in VEHICLES) vs.append(h('option', { value: k }, VEHICLES[k].name));
@@ -10578,6 +10834,13 @@ function startUI() {
   $('#genTarget').dispatchEvent(new Event('change'));
   $('#logoFile').onchange = e => { if (e.target.files[0]) importLogo(e.target.files[0]); e.target.value = ''; };
   $('#bgFile').onchange = e => { if (e.target.files[0]) addBgFromFile(e.target.files[0]); e.target.value = ''; };
+  buildKit(); buildPaintChips();
+  $('#blankGo').onclick = () => {
+    if (S.objs.length && !confirm("Effacer la déco actuelle et repartir d'une voiture vierge ?")) return;
+    S.objs = []; S.sel = new Set(); S.layers = []; [['Noir', '#111111'], ['Blanc', '#ffffff'], ['Rouge', '#d71920']].forEach(p => addLayer(p[0], p[1])); _layK = null;
+    commit(); buildLeft(); buildKit(); toast('Voiture vierge. Ajoutez motifs, texte, logos ou le Kit rallye ; changez la couleur de carrosserie ci-dessous.');
+  };
+
   $('#styleGo').onclick = () => {
     const opt = { num: $('#aNum').value, crew: $('#aCrew').value, sponsor: $('#aSponsor').value, company: $('#aCompany').value, sub: $('#aSub').value, seed: parseInt($('#aSeed').value) || 1, clear: $('#aClear').checked };
     applyStyle(curStyle, opt); commit(); buildLeft(); fitView(); toast('Déco « ' + STYLES[curStyle].name + ' » générée — modifiez, déplacez, changez les couleurs !');

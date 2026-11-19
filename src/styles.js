@@ -120,6 +120,54 @@ const STYLES = {
       c.end('rear', W * .96, H * .22, 'lignes', { n: 4, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 113);
     }
   },
+  eclair: {
+    name: 'Éclair Groupe A', blurb: 'Bande en marches d\'escalier bleu / jaune + liserés sur flancs blancs – esprit 106 / Saxo Gr.A',
+    pal: [['Bleu roi', '#1b4fa3'], ['Jaune', '#ffd400'], ['Blanc', '#ffffff']], light: 2, dark: 0,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(-L * .02, H * .45, L * 1.04, H * .5, 'eclair', { steps: 2, thick: 20, rise: 38 }, [0, 1, 0], { seed: 121 });
+      c.topPart(0, 'eclair', { steps: 1, thick: 24, rise: 30 }, [0, 1, 0], 'hood', 122);
+      c.topPart(2, 'eclair', { steps: 1, thick: 24, rise: 30 }, [0, 1, 0], 'trunk', 123, { flip: true });
+      c.end('front', W * .96, H * .24, 'lignes', { n: 3, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 124);
+      c.end('rear', W * .96, H * .24, 'lignes', { n: 3, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 125);
+    }
+  },
+  bicolore: {
+    name: 'Bicolore Biseauté', blurb: 'Grand bloc jaune à bord angulaire + liserés noirs – esprit Clio Super 1600',
+    pal: [['Jaune', '#ffd400'], ['Noir', '#111111'], ['Blanc', '#ffffff']], light: 2, dark: 1,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(0, H * .1, L * .62, H * .84, 'bloc', { facets: 2, reach: 85 }, [0, 1, 0], { seed: 131, flip: true });
+      c.topPart(0, 'bloc', { facets: 2, reach: 70 }, [0, 1, 0], 'hood', 132);
+      c.topPart(1, 'bloc', { facets: 1, reach: 60 }, [1, 0, 1], 'roof', 133);
+      c.end('front', W * .96, H * .3, 'bloc', { facets: 2, reach: 70 }, [0, 1, 0], 134);
+      c.end('rear', W * .96, H * .3, 'bloc', { facets: 2, reach: 60 }, [0, 1, 0], 135);
+    }
+  },
+  camo: {
+    name: 'Camo Rallye', blurb: 'Grosses taches orange / bleu / noir superposées – look libre « showcar », aplats simples à peler',
+    pal: [['Orange', '#f47b20'], ['Bleu roi', '#1b4fa3'], ['Noir', '#111111']], light: 2, dark: 2,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(L * .02, H * .12, L * .96, H * .84, 'camo', { n: 20, size: 18 }, [0, 1, 2], { seed: 141 });
+      c.topPart(0, 'camo', { n: 12, size: 22 }, [0, 1, 2], 'hood', 142);
+      c.topPart(1, 'camo', { n: 10, size: 22 }, [1, 2, 0], 'roof', 143);
+      c.topPart(2, 'camo', { n: 12, size: 22 }, [2, 0, 1], 'trunk', 144);
+      c.end('front', W * .96, H * .3, 'camo', { n: 10, size: 22 }, [0, 1, 2], 145);
+      c.end('rear', W * .96, H * .3, 'camo', { n: 10, size: 22 }, [0, 1, 2], 146);
+    }
+  },
+  groupeN: {
+    name: 'Sobre Groupe N', blurb: 'Bandes de bas de caisse + faces, le reste laissé à la couleur d\'origine – sobre, rapide à poser',
+    pal: [['Bleu roi', '#1b4fa3'], ['Rouge', '#d71920'], ['Blanc', '#ffffff']], light: 2, dark: 0,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(0, H * .8, L, H * .14, 'lignes', { n: 3, thick: 22, kink: 52, drop: 0 }, [0, 1, 0], { seed: 151 });
+      c.side(L * .55, H * .42, L * .45, H * .3, 'rafale', { n: 3, angle: 40, gap: 45 }, [0, 1], { seed: 152 });
+      c.end('front', W * .96, H * .2, 'lignes', { n: 3, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 153);
+      c.end('rear', W * .96, H * .2, 'lignes', { n: 3, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 154);
+    }
+  },
   camion: {
     name: 'Camion / Pro (nom de société)', blurb: 'Vagues + gros lettrage société – utilitaires et poids lourds',
     pal: [['Bleu roi', '#1b4fa3'], ['Blanc', '#ffffff'], ['Orange', '#f47b20']], light: 1, dark: 0,
@@ -160,13 +208,13 @@ function applyStyle(key, opt = {}) {
       for (const sd of ['left', 'right']) {
         const lcx = lx + lw / 2, lcy = ly + lh / 2; const r = R[sd];
         const place = sd === 'left' ? { x: r.x + lcx, y: r.y + lcy, rot, fx: flip } : { x: r.x + (L - lcx), y: r.y + lcy, rot: -rot, fx: !flip };
-        out.push(...genGroup(gen, params, seed, lw, lh, tiers.map(i => ids[i]), place, 'body', STYLES[key].name));
+        out.push(...genGroup(gen, params, seed, lw, lh, tiers.map(i => ids[i]), place, 'noglass', STYLES[key].name));
       }
     },
     sideText(lx, ly, str, font, size, track, skew, layerIdx) {
       for (const sd of ['left', 'right']) {
         const r = R[sd]; const x = sd === 'left' ? r.x + lx : r.x + (L - lx);
-        const t = textObj(str, font, size, track, skew, 'center', ids[layerIdx], { x, y: r.y + ly }); if (t) { t.clip = 'body'; out.push(t); }
+        const t = textObj(str, font, size, track, skew, 'center', ids[layerIdx], { x, y: r.y + ly }); if (t) { t.clip = 'noglass'; out.push(t); }
       }
     },
     topPart(tierShift, gen, params, tiers, zone, seed, o = {}) {
@@ -174,16 +222,16 @@ function applyStyle(key, opt = {}) {
       const r = R.top, len = z.y1 - z.y0, wid = Math.min(W * .96, 2 * hwAt((z.y0 + z.y1) / 2) * .98);
       const rot = o.rot ?? -90, wScale = o.scaleH || 1;
       const place = { x: r.x + W / 2, y: r.y + (z.y0 + z.y1) / 2, rot, fx: !!o.flip };
-      out.push(...genGroup(gen, params, seed + seed0 * 100, len, wid * wScale, tiers.map(i => ids[i]), place, 'body', STYLES[key].name));
+      out.push(...genGroup(gen, params, seed + seed0 * 100, len, wid * wScale, tiers.map(i => ids[i]), place, 'noglass', STYLES[key].name));
     },
     stripes(w, l, tiers) { // bandes centrales (dessus)
       const r = R.top, sw = W * .38;
       const place = { x: r.x + W / 2, y: r.y + l / 2, rot: 0 };
-      out.push(...genGroup('bandes', { skew: 0, gap: 28 }, 5, sw, l * .995, tiers.map(i => ids[i]), place, 'body', 'Bandes racing'));
+      out.push(...genGroup('bandes', { skew: 0, gap: 28 }, 5, sw, l * .995, tiers.map(i => ids[i]), place, 'noglass', 'Bandes racing'));
     },
     end(view, w, h, gen, params, tiers, seed) {
       const r = R[view]; const place = { x: r.x + W / 2, y: r.y + H - Math.max(v.frontBot, 300) - h * .35 };
-      out.push(...genGroup(gen, params, seed + seed0 * 100, w, h, tiers.map(i => ids[i]), place, 'body', STYLES[key].name));
+      out.push(...genGroup(gen, params, seed + seed0 * 100, w, h, tiers.map(i => ids[i]), place, 'noglass', STYLES[key].name));
     }
   };
   st.fn(c);
@@ -203,7 +251,7 @@ function applyStyle(key, opt = {}) {
     // sponsors bas de caisse
     const x0 = v.wheels[0].x + v.wheels[0].r + 90, x1 = v.wheels[1].x - v.wheels[1].r - 90;
     const sp = textObj(opt.sponsor || 'PARTENAIRE 1  ·  PARTENAIRE 2  ·  PARTENAIRE 3', 'BebasNeue', Math.max(36, (v.belt - v.clear) * .07), 5, 0, 'center', dark, { x: sd === 'left' ? r.x + (x0 + x1) / 2 : r.x + (L - (x0 + x1) / 2), y: r.y + H - v.clear - 105 });
-    if (sp) { const bb = G.bbox(sp.rings); if (bb.w > x1 - x0) { sp.sx = sp.sy = (x1 - x0) / bb.w; } sp.name = 'Sponsors bas de caisse'; sp.clip = 'body'; out.push(sp); }
+    if (sp) { const bb = G.bbox(sp.rings); if (bb.w > x1 - x0) { sp.sx = sp.sy = (x1 - x0) / bb.w; } sp.name = 'Sponsors bas de caisse'; sp.clip = 'noglass'; out.push(sp); }
   }
   // numéro sur le toit
   if (v.rg[0] - v.ws[1] > 300) {
@@ -216,7 +264,7 @@ function applyStyle(key, opt = {}) {
     const r = R.top, ybn = v.ws[0] + 150, bw = hwAt(ybn) * 2 * .8, bh = 150;
     const bar = makeObj({ name: 'Bandeau pare-brise', rings: G.center([G.rect(0, 0, bw, bh)]).rings, layer: dark, x: r.x + W / 2, y: r.y + ybn, clip: 'none', gid: 'bn' });
     const bt = textObj((opt.crew || 'PILOTE / COPILOTE'), 'RacingSansOne', 90, 4, 0, 'center', light, { x: r.x + W / 2, y: r.y + ybn });
-    if (bt) { const bb = G.bbox(bt.rings); if (bb.w > bw * .92) { bt.sx = bt.sy = bw * .92 / bb.w; } bt.gid = 'bn'; if (S.layers.findIndex(l => l.id === light) < S.layers.findIndex(l => l.id === dark)) punch(bar, bt); out.push(bar, bt); }
+    if (bt) { const bb = G.bbox(bt.rings); if (bb.w > bw * .92) { bt.sx = bt.sy = bw * .92 / bb.w; } bt.rot = 180; bt.gid = 'bn'; if (S.layers.findIndex(l => l.id === light) < S.layers.findIndex(l => l.id === dark)) punch(bar, bt); out.push(bar, bt); }
   }
   S.objs.push(...out);
   S.sel = new Set();

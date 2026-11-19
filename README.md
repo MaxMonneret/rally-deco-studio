@@ -14,7 +14,7 @@ Un seul fichier HTML, **sans installation, sans compte, hors-ligne** : ouvrez `d
 |---|---|
 | **Planche 5 vues à l'échelle 1:1 (mm)** | côté gauche, côté droit, dessus, face avant, face arrière – comme vos modèles « 106 » / « Valdenaire ». 5 gabarits intégrés : citadine rallye, WRC/Rally2, pick-up/4x4, utilitaire, camion 7,5 t |
 | **Vue 3D temps réel** | la déco est plaquée sur une carrosserie 3D (flancs, toit/capot/coffre, faces). Rotation à la souris, vues prédéfinies, capture JPG |
-| **Déco auto « comme un designer »** | 10 styles complets en **aplats superposés, sans dégradé** (pensé plotter monocouche) : *Griffures Rallye*, *Boue & Splash*, *Facettes*, *Racing Stripes + Swoosh*, *Rafale WRC*, *Éclats Lime*, *Topo Gravel*, *Alvéoles Hybrid*, *Rétro Groupe B*, *Camion / Pro*. Ajoute ronds de porte, n° de course, équipage, sponsors de bas de caisse, bandeau pare-brise. Bouton 🎲 pour une autre variante |
+| **Déco auto « comme un designer »** | 10 styles complets en **aplats superposés, sans dégradé** (pensé plotter monocouche) : *Griffures Rallye*, *Boue & Splash*, *Facettes*, *Racing Stripes + Swoosh*, *Rafale WRC*, *Éclats Lime*, *Topo Gravel*, *Alvéoles Hybrid*, *Rétro Groupe B*, *Éclair Groupe A*, *Bicolore Biseauté*, *Camo Rallye*, *Sobre Groupe N*, *Camion / Pro*. Les décos auto ne débordent plus sur les vitres. Ajoute ronds de porte, n° de course, équipage, sponsors de bas de caisse, bandeau pare-brise. Bouton 🎲 pour une autre variante |
 | **Calques = couleurs de vinyle** | superposition de couleurs (ordre bas → haut), visibilité, verrouillage, palette de vinyles usuels |
 | **Motifs vectoriels** | griffures, éclaboussures, traces de pneus, flammes, damier dégradé, demi-teintes, facettes low-poly, bandes inclinées, chevrons, lignes de vitesse, swoosh, vagues + formes de base |
 | **Texte → contours** | 7 polices sport/techno intégrées (OFL), espacement, inclinaison, contour/liseré automatique |
@@ -24,6 +24,9 @@ Un seul fichier HTML, **sans installation, sans compte, hors-ligne** : ouvrez `d
 | **Export découpe** | par couleur : **PDF**, **.ai** (PDF vectoriel compatible Illustrator), **SVG** ; ZIP complet |
 | **Dossier client** | PDF A3 : planche + 4 rendus 3D |
 
+| **Kit rallye** | noms de vitres / portières / pare-brise / lunette avec **drapeau + groupe sanguin**, ronds ou panneaux de porte + n°, n° toit / capot, sponsors de bas de caisse |
+| **Voiture vierge** | bouton « Voiture vierge » + couleurs de carrosserie : on compose tout soi-même |
+| **Plan à l'échelle** | fonds importés au 1/20 (ou autre) : échelle + largeur papier ou dpi, puis calibrage par 2 points |
 | **Effets design** | ombre portée décalée, liseré intérieur, série (traînées de vitesse), contour, **épurer** (supprime les détails trop fins pour le vinyle monocouche) |
 | **3D à sections courbes** | carrosserie lofée : piliers inclinés, épaules arrondies, passages de roues creusés, roues à branches, rétroviseurs |
 

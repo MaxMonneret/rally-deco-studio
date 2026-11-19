@@ -240,6 +240,43 @@ const GENS = {
       const R = [G.rect(0, 0, w, h)]; return tiers.map(t => G.inter(t, R));
     }
   },
+  eclair: {
+    label: 'Éclair (bande en zigzag)', tiers: 3, desc: 'Bande épaisse en marches d\'escalier + 2 liserés – esprit Gr.A',
+    params: { steps: ['Marches', 1, 4, 2], thick: ['Épaisseur % haut.', 8, 40, 20], rise: ['Montée %', 10, 70, 35] },
+    fn(w, h, rnd, p) {
+      const st = Math.round(p.steps ?? 2), th = h * (p.thick ?? 20) / 100, rise = h * (p.rise ?? 35) / 100, y0 = h - th * 1.4, pts = [[-th, y0]]; let x = 0, y = y0; const seg = w / (st + 0.5);
+      for (let i = 0; i < st; i++) { x += seg * 0.62; pts.push([x, y]); x += rise / st * 0.9; y -= rise / st; pts.push([x, y]); }
+      pts.push([w + th, y]);
+      const t = [[], [], []]; t[0].push(ribbon(pts, () => th));
+      t[1].push(ribbon(pts.map(q => [q[0], q[1] + th * 0.95]), () => th * 0.36)); t[2].push(ribbon(pts.map(q => [q[0], q[1] + th * 1.5]), () => th * 0.16));
+      const R = [G.rect(0, 0, w, h)]; return t.map(a => G.inter(a, R));
+    }
+  },
+  bloc: {
+    label: 'Bloc biseauté + liserés', tiers: 3, desc: 'Grand aplat à bord angulaire suivi de 2 liserés parallèles (bicolore sport)',
+    params: { facets: ['Facettes', 1, 4, 2], reach: ['Largeur du bloc %', 20, 90, 55] },
+    fn(w, h, rnd, p) {
+      const nf = Math.round(p.facets ?? 2), W0 = w * (p.reach ?? 55) / 100, edge = [[W0 * (0.85 + rnd() * 0.3), 0]];
+      for (let i = 1; i <= nf; i++) edge.push([W0 * (0.55 + rnd() * 0.6), h * i / (nf + 1)]);
+      edge.push([W0 * (0.85 + rnd() * 0.3), h]);
+      const gap = Math.max(26, h * 0.05), lw = Math.max(14, h * 0.035), sh = d => edge.map(q => [q[0] + d, q[1]]);
+      const R = [G.rect(0, 0, w, h)];
+      return [G.inter([[[0, 0], ...edge, [0, h]]], R), G.inter([ribbon(sh(gap + lw / 2), () => lw)], R), G.inter([ribbon(sh(gap * 2 + lw * 1.5), () => lw * 1.6)], R)];
+    }
+  },
+  camo: {
+    label: 'Camo (taches organiques)', tiers: 3, desc: 'Grosses taches lisses en 3 couleurs superposées – aplats, aucun dégradé',
+    params: { n: ['Taches', 6, 40, 18], size: ['Taille %', 8, 40, 20] },
+    fn(w, h, rnd, p) {
+      const n = Math.round(p.n ?? 18), t = [[], [], []];
+      for (let i = 0; i < n; i++) {
+        const R0 = Math.min(w, h) * (p.size ?? 20) / 100 * (0.45 + rnd() * 0.8), cx = w * rnd(), cy = h * rnd(), st = 1 + rnd() * 1.1, an = rnd() * Math.PI, f = [rnd() * 6, rnd() * 6], pts = [];
+        for (let k = 0; k < 40; k++) { const a = k / 40 * Math.PI * 2, r = R0 * (1 + 0.3 * Math.sin(2 * a + f[0]) + 0.18 * Math.sin(3 * a + f[1])), px = Math.cos(a) * r * st, py = Math.sin(a) * r; pts.push([cx + px * Math.cos(an) - py * Math.sin(an), cy + px * Math.sin(an) + py * Math.cos(an)]); }
+        t[Math.floor(rnd() * 3)].push(G.chaikin(pts, 1));
+      }
+      const R = [G.rect(0, 0, w, h)]; return t.map(a => G.inter(a, R));
+    }
+  },
   damier: {
     label: 'Damier dégradé (déconseillé : fondu)', tiers: 1, desc: 'Carrés qui disparaissent progressivement',
     params: { cell: ['Taille case mm', 15, 120, 45], fade: ['Dégradé', 0, 100, 70] },
