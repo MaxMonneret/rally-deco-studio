@@ -2,6 +2,8 @@
 
 Concevoir des **décos vinyle pour voitures de rallye, utilitaires et camions** et sortir des **fichiers prêts à découper** (un fichier par couleur de vinyle), avec aperçu 2D et **vue 3D**.
 
+**Essayer en ligne : https://maxmonneret.github.io/rally-deco-studio/**
+
 Un seul fichier HTML, **sans installation, sans compte, hors-ligne** : ouvrez `dist/RallyDecoStudio.html` dans Chrome / Edge / Firefox.
 
 ![Appli](docs/img/app-wrc.png)
