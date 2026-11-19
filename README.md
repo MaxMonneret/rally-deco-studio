@@ -27,6 +27,7 @@ Un seul fichier HTML, **sans installation, sans compte, hors-ligne** : ouvrez `d
 | **Kit rallye** | noms de vitres / portières / pare-brise / lunette avec **drapeau + groupe sanguin**, ronds ou panneaux de porte + n°, n° toit / capot, sponsors de bas de caisse |
 | **Voiture vierge** | bouton « Voiture vierge » + couleurs de carrosserie : on compose tout soi-même |
 | **Plan à l'échelle** | fonds importés au 1/20 (ou autre) : échelle + largeur papier ou dpi, puis calibrage par 2 points |
+| **Modèle 3D réel** | import OBJ / STL / GLB (Blender, GrabCAD, scans…) : la déco est plaquée par projection sur votre modèle ; réglage des axes avant / haut et de l'échelle. Le modèle reste local |
 | **Effets design** | ombre portée décalée, liseré intérieur, série (traînées de vitesse), contour, **épurer** (supprime les détails trop fins pour le vinyle monocouche) |
 | **3D à sections courbes** | carrosserie lofée : piliers inclinés, épaules arrondies, passages de roues creusés, roues à branches, rétroviseurs |
 

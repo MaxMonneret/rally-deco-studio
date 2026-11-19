@@ -121,6 +121,7 @@ function build3D() {
   T3.mats = {}; for (const vk of VIEWS) T3.mats[vk] = mk(T3.tex[vk]);
   T3.paintMat = new THREE.MeshPhysicalMaterial({ color: S.paint, roughness: 0.35, clearcoat: 0.8, side: THREE.DoubleSide });
   T3.body = true;
+  if (MODEL.tris && addModelMeshes(g, v)) { T3.dirty = true; T3.fitDist = Math.max(L, Hh * 2) * 1.55; return; }
   const archIn = (x, y) => { let a = 0; for (const w of v.wheels) { const d = Math.hypot(x - w.x, y - w.r) - w.r * 1.14; a = Math.max(a, 1 - sstep(-30, 30, d)); } return a; };
   // grille de sommets : n stations x K points (gauche bas -> toit -> droite bas)
   const P = new Float32Array(n * K * 3), SX = new Float32Array(n);

@@ -1,6 +1,6 @@
 /* ===== export.js : préparation de la découpe (par couleur) et fichiers PDF / AI / SVG / ZIP ===== */
 'use strict';
-const EXP = { seams: false, seamW: 3, islands: false, islandGap: 60, roll: 600, margin: 15, gap: 16, overlap: 12, marks: true, mirror: false, cutOnly: false, knock: false, trap: 0.8, tile: true };
+const EXP = { seams: false, seamW: 3, islands: false, islandGap: 60, roll: 620, margin: 15, gap: 16, overlap: 12, marks: true, mirror: false, cutOnly: false, knock: false, trap: 0.8, tile: true };
 
 function layerRaw() { // anneaux monde par calque (union)
   const raw = {};

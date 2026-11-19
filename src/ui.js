@@ -313,7 +313,7 @@ function startUI() {
   $('#genTarget').dispatchEvent(new Event('change'));
   $('#logoFile').onchange = e => { if (e.target.files[0]) importLogo(e.target.files[0]); e.target.value = ''; };
   $('#bgFile').onchange = e => { if (e.target.files[0]) addBgFromFile(e.target.files[0]); e.target.value = ''; };
-  buildKit(); buildPaintChips();
+  buildKit(); buildPaintChips(); buildModelUI();
   $('#blankGo').onclick = () => {
     if (S.objs.length && !confirm("Effacer la déco actuelle et repartir d'une voiture vierge ?")) return;
     S.objs = []; S.sel = new Set(); S.layers = []; [['Noir', '#111111'], ['Blanc', '#ffffff'], ['Rouge', '#d71920']].forEach(p => addLayer(p[0], p[1])); _layK = null;
