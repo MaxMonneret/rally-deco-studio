@@ -61,8 +61,11 @@ function updateTextures() {
     if (!c || c.width !== W || c.height !== Hh) { c = T3.cvs[vk] = document.createElement('canvas'); c.width = W; c.height = Hh; if (T3.tex[vk]) T3.tex[vk].dispose(); const t = T3.tex[vk] = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; if (T3.mats && T3.mats[vk]) { T3.mats[vk].map = t; T3.mats[vk].needsUpdate = true; } }
     const ctx = c.getContext('2d'); ctx.setTransform(k, 0, 0, k, 0, 0); ctx.clearRect(0, 0, r.w, r.h);
     ctx.fillStyle = S.paint; ctx.fillRect(0, 0, r.w, r.h);
-    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, r.w, r.h); ctx.clip(); ctx.translate(-r.x, -r.y); drawObjs(ctx); ctx.restore();
-    drawOver(ctx, vk, 0.96);
+    const hasBg = S.showBg && S.bgs.some(b => b.vis && b.img && b.img.complete);
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, r.w, r.h); ctx.clip(); ctx.translate(-r.x, -r.y);
+    if (hasBg) for (const b of S.bgs) if (b.vis && b.img && b.img.complete) ctx.drawImage(b.img, b.x, b.y, b.w, b.h); // le plan sert de "peinture" 3D
+    drawObjs(ctx); ctx.restore();
+    if (!hasBg) drawOver(ctx, vk, 0.96);
     T3.tex[vk].needsUpdate = true;
   }
   if (T3.mats) { for (const m of Object.values(T3.mats)) m.color.set(0xffffff); T3.body && (T3.paintMat.color.set(S.paint)); }
