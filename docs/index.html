@@ -9338,13 +9338,14 @@ function draw2D() {
     ctx.stroke();
   }
   if (S.showBg) for (const b of S.bgs) { if (!b.vis || !b.img || !b.img.complete) continue; ctx.globalAlpha = b.op; ctx.drawImage(b.img, b.x, b.y, b.w, b.h); ctx.globalAlpha = 1; }
+  const hasBg = S.showBg && S.bgs.some(b => b.vis);
   for (const vk of VIEWS) {
-    const r = R[vk]; ctx.save(); ctx.translate(r.x, r.y); drawBase(ctx, vk, { lw: 3 / k }); ctx.restore();
+    const r = R[vk]; ctx.save(); ctx.translate(r.x, r.y); if (hasBg) { fillRings(ctx, viewGeom(V(), vk).body); ctx.strokeStyle = 'rgba(255,60,0,.7)'; ctx.lineWidth = 3 / k; ctx.stroke(); } else drawBase(ctx, vk, { lw: 3 / k }); ctx.restore();
   }
   drawObjs(ctx);
   for (const vk of VIEWS) {
     const r = R[vk]; ctx.save(); ctx.translate(r.x, r.y);
-    drawOver(ctx, vk, S.showGlass ? 0.42 : 0.0);
+    if (!hasBg) drawOver(ctx, vk, S.showGlass ? 0.42 : 0.0);
     ctx.restore();
     ctx.fillStyle = '#6b7380'; ctx.font = `${14 / k}px system-ui`; ctx.fillText(VIEW_NAMES[vk] + (vk === 'left' ? '  (avant ←)' : vk === 'right' ? '  (avant →)' : vk === 'top' ? '  (avant ↑)' : ''), r.x, r.y - 8 / k);
   }
