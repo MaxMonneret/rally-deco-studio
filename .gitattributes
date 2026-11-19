@@ -1,0 +1,6 @@
+*.pdf binary
+*.ai binary
+*.png binary
+*.jpg binary
+*.ttf binary
+* text=auto

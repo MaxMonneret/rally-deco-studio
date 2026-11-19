@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rally Deco Studio – décos vinyle pour voitures de rallye &amp; camions</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>RALLY</b> DECO STUDIO</div>
+  <input id="projName" class="pname" title="Nom du projet" value="Ma déco rallye">
+  <select id="vehSel" title="Véhicule"></select>
+  <label class="paint" title="Couleur de la carrosserie (peinture)">Carrosserie <input type="color" id="paint" value="#e9ecef"></label>
+  <div class="sp"></div>
+  <div id="modeBtns" class="seg"><button data-m="2d">2D</button><button data-m="both" class="on">2D + 3D</button><button data-m="3d">3D</button></div>
+  <button id="btnUndo" title="Annuler (Ctrl+Z)">↶</button><button id="btnRedo" title="Rétablir (Ctrl+Y)">↷</button>
+  <button id="btnNew">Nouveau</button><button id="btnOpen">Ouvrir</button><button id="btnSave">Enregistrer</button>
+  <input type="file" id="fileOpen" accept=".json,.rallydeco" hidden>
+  <button id="btnExport" class="primary">⬇ Fichiers de découpe</button>
+</header>
+<main>
+  <aside id="left">
+    <div class="tabs"><button class="tab on" data-t="tAuto">Déco auto</button><button class="tab" data-t="tPat">Motifs</button><button class="tab" data-t="tTxt">Texte / Logo</button><button class="tab" data-t="tBg">Fonds</button></div>
+
+    <section id="tAuto" class="tabp on">
+      <p class="hint">Choisissez un style : l'appli compose une déco complète (côtés, capot, toit, coffre, faces) en <b>couleurs vinyle superposées</b>, avec ronds de porte, équipage, sponsors et bandeau pare-brise. Tout reste modifiable.</p>
+      <div id="styleList"></div>
+      <div class="grid2">
+        <label class="f">N° course<input id="aNum" value="12"></label>
+        <label class="f">Équipage<input id="aCrew" value="DUPONT / MARTIN"></label>
+        <label class="f">Société (camion)<input id="aCompany" value="VOTRE SOCIÉTÉ"></label>
+        <label class="f">Sous-titre<input id="aSub" value="TRANSPORT · LOGISTIQUE"></label>
+      </div>
+      <label class="f">Sponsors (bas de caisse)<input id="aSponsor" value="PARTENAIRE 1  ·  PARTENAIRE 2  ·  PARTENAIRE 3"></label>
+      <div class="btnrow"><label class="f" style="flex:0 0 90px">Variante n°<input id="aSeed" type="number" value="1" min="1"></label>
+        <button id="aDice" title="Autre variante aléatoire">🎲 Variante</button></div>
+      <label class="chk"><input type="checkbox" id="aClear" checked> Remplacer la déco actuelle</label>
+      <button id="styleGo" class="primary wide">✨ Générer la déco</button>
+    </section>
+
+    <section id="tPat" class="tabp">
+      <div id="genList" class="glist"></div>
+      <div id="genParams"></div>
+      <div class="grid2">
+        <label class="f">Où ?<select id="genTarget"><option value="sides">Les 2 côtés (miroir auto)</option><option value="left">Côté gauche</option><option value="right">Côté droit</option><option value="top">Dessus (capot / toit / coffre)</option><option value="front">Face avant</option><option value="rear">Face arrière</option><option value="center">Centre de l'écran</option></select></label>
+        <label class="chk" style="align-self:end"><input type="checkbox" id="genClip" checked> Ajuster à la carrosserie</label>
+        <label class="f">Largeur mm<input id="genW" type="number" value="1800"></label>
+        <label class="f">Hauteur mm<input id="genH" type="number" value="500"></label>
+      </div>
+      <button id="genGo" class="primary wide">＋ Ajouter à la planche</button>
+    </section>
+
+    <section id="tTxt" class="tabp">
+      <div class="ptitle small">Texte (converti en contours = prêt à découper)</div>
+      <textarea id="txtStr" rows="2">SPONSOR</textarea>
+      <div class="grid2">
+        <label class="f">Police<select id="txtFont"></select></label>
+        <label class="f">Où ?<select id="txtTarget"><option value="sides">Les 2 côtés</option><option value="left">Côté gauche</option><option value="right">Côté droit</option><option value="top">Dessus</option><option value="front">Face avant</option><option value="rear">Face arrière</option><option value="center">Centre écran</option></select></label>
+        <label class="f">Hauteur mm<input id="txtSize" type="number" value="120"></label>
+        <label class="f">Couleur<select id="txtLayer" class="layerSel"></select></label>
+        <label class="f">Espacement<input id="txtTrack" type="number" value="4" step="0.5"></label>
+        <label class="f">Inclinaison °<input id="txtSkew" type="number" value="0"></label>
+      </div>
+      <button id="txtGo" class="primary wide">＋ Ajouter le texte</button>
+      <div class="ptitle small" style="margin-top:14px">Logo / publicité</div>
+      <p class="hint">SVG : importé tel quel (vectoriel). PNG / JPG : vectorisé par seuil (logo noir sur fond clair idéal).</p>
+      <div class="grid2">
+        <label class="f">Largeur mm<input id="logoW" type="number" value="500"></label>
+        <label class="f">Couleur<select id="logoLayer" class="layerSel"></select></label>
+        <label class="f">Seuil (PNG/JPG)<input id="logoThr" type="range" min="30" max="230" value="128"></label>
+        <label class="chk" style="align-self:end"><input type="checkbox" id="logoInv"> Inverser</label>
+      </div>
+      <label class="btn wide">Importer un logo…<input type="file" id="logoFile" accept=".svg,image/*" hidden></label>
+    </section>
+
+    <section id="tBg" class="tabp">
+      <p class="hint">Ajoutez la photo ou le plan de votre véhicule (PNG / JPG / SVG) comme guide, puis <b>calibrez l'échelle</b> en cliquant 2 points de distance connue. Glisser-déposer d'une image sur la page = fond.</p>
+      <label class="btn wide">Importer un fond / gabarit…<input type="file" id="bgFile" accept="image/*" hidden></label>
+      <div id="bgList"></div>
+    </section>
+  </aside>
+
+  <div id="stage" class="m-both">
+    <div id="wrap2d"><canvas id="c2d"></canvas>
+      <div class="ovl tl"><label><input type="checkbox" id="showGrid" checked>Grille</label><label><input type="checkbox" id="showGlass" checked>Vitres</label><label><input type="checkbox" id="showBg" checked>Fonds</label>
+        <select id="snapSel" title="Magnétisme"><option value="0">Sans aimant</option><option value="5">Aimant 5 mm</option><option value="10" selected>Aimant 10 mm</option><option value="50">Aimant 50 mm</option></select><button id="btnFit">⤢ Tout voir</button></div>
+      <div id="coords" class="ovl bl"></div>
+    </div>
+    <div id="wrap3d"><canvas id="c3d"></canvas>
+      <div id="camBtns" class="ovl tl"><button data-c="34av">3/4 AV</button><button data-c="34ar">3/4 AR</button><button data-c="gauche">Gauche</button><button data-c="droite">Droite</button><button data-c="face">Face</button><button data-c="arriere">Arrière</button><button data-c="dessus">Dessus</button>
+        <label><input type="checkbox" id="autoRot">Rotation</label><button id="shot3d">📷 Capture</button></div>
+    </div>
+  </div>
+
+  <aside id="right">
+    <div class="ptitle">Couleurs vinyle (calques) <small>du bas vers le haut ↑</small></div>
+    <div id="layers"></div>
+    <div class="btnrow"><select id="addLayerSel"></select><button id="addLayerBtn">＋ Couleur</button></div>
+    <div class="ptitle" style="margin-top:12px">Sélection</div>
+    <div id="props"></div>
+  </aside>
+</main>
+
+<div id="exportDlg" class="modal"><div class="dlg">
+  <div class="dhead"><b>Fichiers prêts à découper</b><button id="expClose">✕</button></div>
+  <p class="hint">Un fichier par couleur de vinyle, à l'échelle 1:1, <b>largeur de rouleau</b> respectée (pièces coupées en bandes avec recouvrement, rangées et étiquetées), repères de recalage, trait de coupe magenta <code>CutContour</code>. Les .ai sont des PDF vectoriels (ouvrir dans Illustrator, CutStudio, VersaWorks, Graphtec Studio, Summa GoSign, Flexi…).</p>
+  <div class="opts">
+    <label class="f">Largeur rouleau (mm)<input id="eRoll" type="number"></label>
+    <label class="f">Marge (mm)<input id="eMargin" type="number"></label>
+    <label class="f">Recouvrement bandes (mm)<input id="eOverlap" type="number"></label>
+    <label class="chk"><input type="checkbox" id="eTile"> Découpe en bandes (si &gt; rouleau)</label>
+    <label class="chk"><input type="checkbox" id="eMarks"> Repères de recalage</label>
+    <label class="chk"><input type="checkbox" id="eMirror"> Miroir (pose à l'envers)</label>
+    <label class="chk"><input type="checkbox" id="eCut"> Trait de coupe seul (sans remplissage)</label>
+    <label class="chk" title="Chaque petit élément isolé devient une pièce séparée : beaucoup moins de vinyle perdu, mais la position relative n'est plus conservée (se référer au plan de pose)"><input type="checkbox" id="eIsl"> Mode économie : îlots séparés</label>
+    <label class="chk"><input type="checkbox" id="eKnock"> Réserves : les couleurs du dessus évident celles du dessous</label>
+    <label class="f">Recouvrement des réserves (mm)<input id="eTrap" type="number" step="0.1"></label>
+  </div>
+  <div id="expTable"></div>
+  <div class="btnrow big">
+    <button id="expZip" class="primary">⬇ Tout exporter (ZIP : PDF + AI + SVG + aperçu)</button>
+    <button id="expPrev">🖨 Aperçu / impression (planche A3)</button>
+    <button id="expPrev3d">🖼 Dossier client PDF (planche + rendus 3D)</button>
+    <button id="expProj">💾 Projet (.json)</button>
+  </div>
+</div></div>
+<div id="toast"></div>
+<script>/*__SCRIPTS__*/</script>
+</body>
+</html>
