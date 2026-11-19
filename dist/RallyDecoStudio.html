@@ -187,6 +187,7 @@ code{background:#12151a;padding:1px 5px;border-radius:4px}
     <label class="f">Largeur rouleau (mm)<input id="eRoll" type="number"></label>
     <label class="f">Marge (mm)<input id="eMargin" type="number"></label>
     <label class="f">Recouvrement bandes (mm)<input id="eOverlap" type="number"></label>
+    <label class="chk" title="Coupe le vinyle de 3 mm aux joints de portières : chaque panneau se pose séparément, sans vinyle à cheval sur un joint"><input type="checkbox" id="eSeams"> Couper aux joints de portes</label>
     <label class="chk"><input type="checkbox" id="eTile"> Découpe en bandes (si &gt; rouleau)</label>
     <label class="chk"><input type="checkbox" id="eMarks"> Repères de recalage</label>
     <label class="chk"><input type="checkbox" id="eMirror"> Miroir (pose à l'envers)</label>
@@ -9911,6 +9912,20 @@ const STYLES = {
       c.end('rear', W * .96, H * .2, 'lignes', { n: 3, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 154);
     }
   },
+  colorblock: {
+    name: 'Color Block WRC', blurb: 'Nez en couleur vive, arrière sombre, flashs blancs aux jonctions – tendance WRC actuelle (gros aplats nets)',
+    pal: [['Rouge', '#d71920'], ['Noir', '#111111'], ['Blanc', '#ffffff']], light: 2, dark: 1,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(0, 0, L * .5, H, 'bloc', { facets: 2, reach: 90 }, [0, 2, 2], { seed: 161, flip: true });
+      c.side(L * .5, 0, L * .5, H, 'bloc', { facets: 2, reach: 90 }, [1, 2, 2], { seed: 162 });
+      c.side(L * .3, H * .5, L * .4, H * .4, 'rafale', { n: 3, angle: 42, gap: 50 }, [2, 2], { seed: 163 });
+      c.topPart(0, 'bloc', { facets: 2, reach: 95 }, [0, 2, 2], 'hood', 164, { flip: true });
+      c.topPart(2, 'bloc', { facets: 2, reach: 95 }, [1, 2, 2], 'trunk', 165);
+      c.end('front', W * .96, H * .3, 'bloc', { facets: 1, reach: 95 }, [0, 2, 2], 166);
+      c.end('rear', W * .96, H * .3, 'bloc', { facets: 1, reach: 95 }, [1, 2, 2], 167);
+    }
+  },
   camion: {
     name: 'Camion / Pro (nom de société)', blurb: 'Vagues + gros lettrage société – utilitaires et poids lourds',
     pal: [['Bleu roi', '#1b4fa3'], ['Blanc', '#ffffff'], ['Orange', '#f47b20']], light: 1, dark: 0,
@@ -10345,7 +10360,7 @@ function shot3D(w, h, preset) {
 /* ---- export.js ---- */
 /* ===== export.js : préparation de la découpe (par couleur) et fichiers PDF / AI / SVG / ZIP ===== */
 'use strict';
-const EXP = { islands: false, islandGap: 60, roll: 600, margin: 15, gap: 16, overlap: 12, marks: true, mirror: false, cutOnly: false, knock: false, trap: 0.8, tile: true };
+const EXP = { seams: false, seamW: 3, islands: false, islandGap: 60, roll: 600, margin: 15, gap: 16, overlap: 12, marks: true, mirror: false, cutOnly: false, knock: false, trap: 0.8, tile: true };
 
 function layerRaw() { // anneaux monde par calque (union)
   const raw = {};
@@ -10353,7 +10368,14 @@ function layerRaw() { // anneaux monde par calque (union)
     let rs = []; for (const o of S.objs) if (o.layer === L.id && !o.hide) rs = rs.concat(cRings(o));
     raw[L.id] = rs.length ? G.union(rs) : [];
   }
+  if (EXP.seams) { const sc = seamCuts(); if (sc.length) for (const k in raw) if (raw[k].length) raw[k] = G.diff(raw[k], sc); }
   return raw;
+}
+/** joints de portières : fines coupures verticales pour poser chaque panneau séparément (pas de vinyle à cheval sur un joint) */
+function seamCuts() {
+  const v = V(), R = REG(), out = [], w = EXP.seamW || 3, y0 = v.H - v.belt + 10, y1 = v.H - v.clear - 40;
+  for (const sd of ['left', 'right']) for (const x of v.door) { const cx = sd === 'left' ? R[sd].x + x : R[sd].x + (v.L - x); out.push(G.rect(cx - w / 2, R[sd].y + y0, w, y1 - y0)); }
+  return out;
 }
 /** "réserves" : zone couverte par les couleurs du dessus, réduite du recouvrement => à évider dans la couleur du dessous */
 function layerHoles() {
@@ -10751,7 +10773,7 @@ function renderExport() {
   if (pre.some(p => p.wide)) box.append(h('p', { class: 'warn' }, '⚠ Une pièce dépasse la largeur utile du rouleau : activez « Découpe en bandes ».'));
 }
 function bindExportOpts() {
-  const map = { eRoll: ['roll', Number], eMargin: ['margin', Number], eOverlap: ['overlap', Number], eTrap: ['trap', Number], eMarks: ['marks', 'chk'], eMirror: ['mirror', 'chk'], eCut: ['cutOnly', 'chk'], eKnock: ['knock', 'chk'], eIsl: ['islands', 'chk'], eTile: ['tile', 'chk'] };
+  const map = { eRoll: ['roll', Number], eMargin: ['margin', Number], eOverlap: ['overlap', Number], eTrap: ['trap', Number], eMarks: ['marks', 'chk'], eMirror: ['mirror', 'chk'], eCut: ['cutOnly', 'chk'], eKnock: ['knock', 'chk'], eIsl: ['islands', 'chk'], eTile: ['tile', 'chk'], eSeams: ['seams', 'chk'] };
   for (const id in map) { const el = $('#' + id), [k, t] = map[id]; if (t === 'chk') el.checked = EXP[k]; else el.value = EXP[k]; el.onchange = () => { EXP[k] = t === 'chk' ? el.checked : (parseFloat(el.value) || EXP[k]); renderExport(); }; }
 }
 

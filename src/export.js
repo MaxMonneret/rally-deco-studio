@@ -1,6 +1,6 @@
 /* ===== export.js : préparation de la découpe (par couleur) et fichiers PDF / AI / SVG / ZIP ===== */
 'use strict';
-const EXP = { islands: false, islandGap: 60, roll: 600, margin: 15, gap: 16, overlap: 12, marks: true, mirror: false, cutOnly: false, knock: false, trap: 0.8, tile: true };
+const EXP = { seams: false, seamW: 3, islands: false, islandGap: 60, roll: 600, margin: 15, gap: 16, overlap: 12, marks: true, mirror: false, cutOnly: false, knock: false, trap: 0.8, tile: true };
 
 function layerRaw() { // anneaux monde par calque (union)
   const raw = {};
@@ -8,7 +8,14 @@ function layerRaw() { // anneaux monde par calque (union)
     let rs = []; for (const o of S.objs) if (o.layer === L.id && !o.hide) rs = rs.concat(cRings(o));
     raw[L.id] = rs.length ? G.union(rs) : [];
   }
+  if (EXP.seams) { const sc = seamCuts(); if (sc.length) for (const k in raw) if (raw[k].length) raw[k] = G.diff(raw[k], sc); }
   return raw;
+}
+/** joints de portières : fines coupures verticales pour poser chaque panneau séparément (pas de vinyle à cheval sur un joint) */
+function seamCuts() {
+  const v = V(), R = REG(), out = [], w = EXP.seamW || 3, y0 = v.H - v.belt + 10, y1 = v.H - v.clear - 40;
+  for (const sd of ['left', 'right']) for (const x of v.door) { const cx = sd === 'left' ? R[sd].x + x : R[sd].x + (v.L - x); out.push(G.rect(cx - w / 2, R[sd].y + y0, w, y1 - y0)); }
+  return out;
 }
 /** "réserves" : zone couverte par les couleurs du dessus, réduite du recouvrement => à évider dans la couleur du dessous */
 function layerHoles() {

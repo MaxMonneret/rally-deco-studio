@@ -168,6 +168,20 @@ const STYLES = {
       c.end('rear', W * .96, H * .2, 'lignes', { n: 3, thick: 14, kink: 50, drop: 0 }, [0, 1, 0], 154);
     }
   },
+  colorblock: {
+    name: 'Color Block WRC', blurb: 'Nez en couleur vive, arrière sombre, flashs blancs aux jonctions – tendance WRC actuelle (gros aplats nets)',
+    pal: [['Rouge', '#d71920'], ['Noir', '#111111'], ['Blanc', '#ffffff']], light: 2, dark: 1,
+    fn(c) {
+      const { L, H, W } = c;
+      c.side(0, 0, L * .5, H, 'bloc', { facets: 2, reach: 90 }, [0, 2, 2], { seed: 161, flip: true });
+      c.side(L * .5, 0, L * .5, H, 'bloc', { facets: 2, reach: 90 }, [1, 2, 2], { seed: 162 });
+      c.side(L * .3, H * .5, L * .4, H * .4, 'rafale', { n: 3, angle: 42, gap: 50 }, [2, 2], { seed: 163 });
+      c.topPart(0, 'bloc', { facets: 2, reach: 95 }, [0, 2, 2], 'hood', 164, { flip: true });
+      c.topPart(2, 'bloc', { facets: 2, reach: 95 }, [1, 2, 2], 'trunk', 165);
+      c.end('front', W * .96, H * .3, 'bloc', { facets: 1, reach: 95 }, [0, 2, 2], 166);
+      c.end('rear', W * .96, H * .3, 'bloc', { facets: 1, reach: 95 }, [1, 2, 2], 167);
+    }
+  },
   camion: {
     name: 'Camion / Pro (nom de société)', blurb: 'Vagues + gros lettrage société – utilitaires et poids lourds',
     pal: [['Bleu roi', '#1b4fa3'], ['Blanc', '#ffffff'], ['Orange', '#f47b20']], light: 1, dark: 0,

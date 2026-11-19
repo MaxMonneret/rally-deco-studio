@@ -230,7 +230,7 @@ function renderExport() {
   if (pre.some(p => p.wide)) box.append(h('p', { class: 'warn' }, '⚠ Une pièce dépasse la largeur utile du rouleau : activez « Découpe en bandes ».'));
 }
 function bindExportOpts() {
-  const map = { eRoll: ['roll', Number], eMargin: ['margin', Number], eOverlap: ['overlap', Number], eTrap: ['trap', Number], eMarks: ['marks', 'chk'], eMirror: ['mirror', 'chk'], eCut: ['cutOnly', 'chk'], eKnock: ['knock', 'chk'], eIsl: ['islands', 'chk'], eTile: ['tile', 'chk'] };
+  const map = { eRoll: ['roll', Number], eMargin: ['margin', Number], eOverlap: ['overlap', Number], eTrap: ['trap', Number], eMarks: ['marks', 'chk'], eMirror: ['mirror', 'chk'], eCut: ['cutOnly', 'chk'], eKnock: ['knock', 'chk'], eIsl: ['islands', 'chk'], eTile: ['tile', 'chk'], eSeams: ['seams', 'chk'] };
   for (const id in map) { const el = $('#' + id), [k, t] = map[id]; if (t === 'chk') el.checked = EXP[k]; else el.value = EXP[k]; el.onchange = () => { EXP[k] = t === 'chk' ? el.checked : (parseFloat(el.value) || EXP[k]); renderExport(); }; }
 }
 
